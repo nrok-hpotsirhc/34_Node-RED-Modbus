@@ -15,7 +15,7 @@
 | MS-3 | Client/Master – Read Nodes | [x] Complete | WP 2.1, WP 2.4 | FC 01-04, payload parsing, endianness |
 | MS-4 | Client/Master – Write Nodes & Queue | [x] Complete | WP 2.2, WP 2.3 | FC 05/06/15/16, backpressure |
 | MS-5 | Server/Slave – Proxy Architecture | [x] Complete | WP 3.1, WP 3.2, WP 3.3 | TCP/RTU listener, Modbus-In/Out nodes |
-| MS-6 | Server Caching & Optimization | [ ] Open | WP 3.4 | In-memory hashmap, performance |
+| MS-6 | Server Caching & Optimization | [x] Complete | WP 3.4 | In-memory hashmap, performance |
 | MS-7 | Modbus/TCP Security | [ ] Open | WP 4.1, WP 4.2, WP 4.3 | TLS 1.3, mTLS, credential management |
 | MS-8 | Quality Assurance & Release | [ ] Open | WP 5.1, WP 5.2, WP 5.3, WP 5.4 | Testing, docs, npm publish |
 
@@ -168,9 +168,9 @@
 - **WP 3.4** – In-memory hashmap for auto-replying
 
 **Deliverables:**
-- [ ] `src/lib/cache/register-cache.js` – Hashmap-based register cache
-- [ ] `test/unit/cache/register-cache.test.js`
-- [ ] Performance benchmarks documented
+- [x] `src/lib/cache/register-cache.js` – Hashmap-based register cache
+- [x] `test/unit/cache/register-cache.test.js`
+- [x] Performance benchmarks documented
 
 **Acceptance Criteria:**
 - Cache answers recurring requests without flow traversal
@@ -244,6 +244,6 @@
 | 2026-04-16 | MS-3 | Complete | Read nodes, buffer parser, payload builder (264 passing) |
 | 2026-04-16 | MS-4 | Complete | Write nodes, backpressure queue (334 passing) |
 | 2026-04-16 | MS-5 | Complete | Server proxy architecture, Modbus-In/Out nodes (366 passing) |
-| _TBD_ | MS-6 | Open | — |
+| 2026-04-16 | MS-6 | Complete | Register cache with TTL, write invalidation (437 passing) |
 | _TBD_ | MS-7 | Open | — |
 | _TBD_ | MS-8 | Open | — |

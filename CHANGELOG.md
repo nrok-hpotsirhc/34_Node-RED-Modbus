@@ -10,6 +10,13 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **MS-6: Server Caching & Optimization**
+  - `src/lib/cache/register-cache.js` – In-memory hashmap-based register cache for the Modbus server proxy. Stores read responses keyed by function code, unit ID, and address. Features configurable TTL per entry (default 60s), max cache size with LRU-like eviction of oldest entries, automatic invalidation on write operations (FC 05/06/15/16 invalidate corresponding FC 01/03 entries), periodic expired-entry cleanup, runtime enable/disable, unit-level invalidation, and performance statistics (hit rate, size). Extends EventEmitter with hit/miss/evict events.
+  - `test/unit/cache/register-cache.test.js` – 71 unit tests covering constructor validation, get/set operations, TTL expiration, max size eviction, write invalidation (FC 05→FC 01, FC 06→FC 03, FC 15→FC 01, FC 16→FC 03), unit invalidation, clear, enable/disable toggling, events, statistics, destroy lifecycle, and edge cases (address 0, unit 255, large arrays, constant memory under flooding)
+  - Integrated cache into `modbus-server-config.js` – Read requests check cache first (cache hit returns immediately without flow traversal), write requests auto-invalidate affected cache entries, successful flow responses are cached for subsequent reads
+  - Extended `modbus-server-config.html` – Added cache configuration UI: Enable Cache checkbox, Cache TTL (ms), Max Cache Size, with dynamic show/hide of cache fields and help sidebar documentation
+
+### Added
 - **MS-5: Server/Slave – Proxy Architecture**
   - `src/nodes/config/modbus-server-config.js` – Modbus TCP server config node using modbus-serial's ServerTCP with event-based vector callbacks implementing the Dynamic Server Proxy pattern (no monolithic memory arrays)
   - `src/nodes/config/modbus-server-config.html` – Server config UI with host, port, unit ID, response timeout settings and help sidebar

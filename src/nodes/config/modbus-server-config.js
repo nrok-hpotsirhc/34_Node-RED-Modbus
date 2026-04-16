@@ -125,7 +125,7 @@ module.exports = function (RED) {
         node._cache.invalidateOnWrite(fc, unitId, address, count);
       }
 
-      return new Promise(function (resolve, reject) {
+      return new Promise(function (promiseResolve, reject) {
         const requestId = generateRequestId();
 
         const timer = setTimeout(function () {
@@ -141,7 +141,7 @@ module.exports = function (RED) {
             if (!isWrite && node._cache.enabled) {
               node._cache.set(fc, unitId, address, quantityOrValue, data);
             }
-            resolve(data);
+            promiseResolve(data);
           },
           reject,
           timer
