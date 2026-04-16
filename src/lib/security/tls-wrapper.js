@@ -16,6 +16,11 @@ const TLS_DEFAULTS = {
 };
 
 /**
+ * Timeout in ms before force-destroying a socket that didn't close gracefully.
+ */
+const DESTROY_TIMEOUT = 5000;
+
+/**
  * TLS wrapper for Modbus/TCP Security connections.
  *
  * Creates and manages TLS sockets compliant with the Modbus/TCP Security
@@ -312,13 +317,13 @@ class TlsWrapper extends EventEmitter {
       socket.once('close', () => resolve());
       socket.end();
 
-      // Force destroy after 5 seconds if graceful close doesn't complete
+      // Force destroy after DESTROY_TIMEOUT if graceful close doesn't complete
       setTimeout(() => {
         if (!socket.destroyed) {
           socket.destroy();
         }
         resolve();
-      }, 5000);
+      }, DESTROY_TIMEOUT);
     });
   }
 

@@ -465,7 +465,7 @@ describe('TlsWrapper', function () {
   // -- connect error scenarios --
 
   describe('connect (error scenarios)', function () {
-    it('should fail when connecting to non-existent host', async function () {
+    it('should fail when connecting to non-listening port', async function () {
       this.timeout(15000);
       const wrapper = new TlsWrapper({
         host: '127.0.0.1',

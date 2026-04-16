@@ -43,7 +43,7 @@ class TcpTransport extends BaseTransport {
   constructor(config = {}) {
     const merged = { ...TCP_DEFAULTS, ...config };
     // Auto-set port to 802 when TLS enabled and port not explicitly set
-    if (merged.tls && !config.port) {
+    if (merged.tls && config.port === undefined) {
       merged.port = 802;
     }
     super(merged);
