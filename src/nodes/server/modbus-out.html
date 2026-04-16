@@ -1,0 +1,111 @@
+<script type="text/javascript">
+    RED.nodes.registerType('modbus-out', {
+        category: 'modbus',
+        color: '#C7E9C0',
+        defaults: {
+            name: { value: '' },
+            server: { value: '', type: 'modbus-server-config', required: true }
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: 'bridge.svg',
+        paletteLabel: 'modbus out',
+        align: 'right',
+        label: function () {
+            return this.name || 'modbus out';
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="modbus-out">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Modbus Out">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-server"><i class="fa fa-cog"></i> Server</label>
+        <input type="text" id="node-input-server">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="modbus-out">
+    <p>Sends Modbus response data back to the external client that made the request.</p>
+
+    <h3>Configuration</h3>
+    <dl class="message-properties">
+        <dt>Server <span class="property-type">config node</span></dt>
+        <dd>Select the Modbus server configuration node (must match the modbus-in node).</dd>
+    </dl>
+
+    <h3>Input</h3>
+    <p>The incoming message must contain a <code>msg.payload</code> object with:</p>
+
+    <h4>Success Response</h4>
+    <dl class="message-properties">
+        <dt>payload.requestId <span class="property-type">string</span></dt>
+        <dd>The request ID from the original modbus-in message. <b>Required.</b></dd>
+        <dt>payload.data <span class="property-type">array | number | boolean</span></dt>
+        <dd>The response data to send back to the Modbus client.</dd>
+    </dl>
+    <pre>{
+  "requestId": "uuid-from-modbus-in",
+  "data": [1234, 5678]
+}</pre>
+
+    <h4>Error Response</h4>
+    <p>To send a Modbus error/exception response:</p>
+    <dl class="message-properties">
+        <dt>payload.requestId <span class="property-type">string</span></dt>
+        <dd>The request ID from the original modbus-in message.</dd>
+        <dt>payload.error <span class="property-type">object</span></dt>
+        <dd>An error object with optional <code>modbusErrorCode</code> (default: 0x04 – Slave Device Failure).</dd>
+    </dl>
+    <pre>{
+  "requestId": "uuid-from-modbus-in",
+  "error": {
+    "message": "Data not available",
+    "modbusErrorCode": 2
+  }
+}</pre>
+
+    <h3>Output</h3>
+    <p>The original message is forwarded to the output for chaining or logging.</p>
+
+    <h3>Modbus Error Codes</h3>
+    <dl>
+        <dt>0x01 – Illegal Function</dt>
+        <dd>The function code is not supported.</dd>
+        <dt>0x02 – Illegal Data Address</dt>
+        <dd>The requested address is not available.</dd>
+        <dt>0x03 – Illegal Data Value</dt>
+        <dd>The request contains an invalid value.</dd>
+        <dt>0x04 – Slave Device Failure</dt>
+        <dd>An unrecoverable error occurred (default for flow errors).</dd>
+        <dt>0x0B – Gateway Target Device Failed To Respond</dt>
+        <dd>The response timed out (sent automatically by the server config).</dd>
+    </dl>
+
+    <h3>Details</h3>
+    <p>
+        The <b>modbus-out</b> node completes the Dynamic Server Proxy pattern.
+        After the flow processes a request from <b>modbus-in</b>, this node sends
+        the result back to the waiting external Modbus client.
+    </p>
+    <p>
+        <b>Important:</b> The <code>requestId</code> must match a pending request.
+        If the response arrives after the configured timeout, the request will have
+        already been answered with an error and the response will be discarded.
+    </p>
+
+    <h3>Example Flow</h3>
+    <pre>
+[modbus-in] → [function: compute response] → [modbus-out]
+
+// In the function node:
+msg.payload = {
+    requestId: msg.payload.requestId,
+    data: [100, 200, 300]
+};
+return msg;</pre>
+</script>

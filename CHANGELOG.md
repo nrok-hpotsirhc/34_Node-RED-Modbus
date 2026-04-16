@@ -9,6 +9,18 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **MS-5: Server/Slave – Proxy Architecture**
+  - `src/nodes/config/modbus-server-config.js` – Modbus TCP server config node using modbus-serial's ServerTCP with event-based vector callbacks implementing the Dynamic Server Proxy pattern (no monolithic memory arrays)
+  - `src/nodes/config/modbus-server-config.html` – Server config UI with host, port, unit ID, response timeout settings and help sidebar
+  - `src/nodes/server/modbus-in.js` – Modbus-In node subscribing to server config events, injecting structured JSON requests (fc, address, quantity/value, requestId, unitId) into the Node-RED flow with function code and unit ID filtering
+  - `src/nodes/server/modbus-in.html` – Modbus-In editor UI with server selection, function code filter, unit ID filter, and help sidebar
+  - `src/nodes/server/modbus-out.js` – Modbus-Out node collecting flow responses and routing them back to the waiting external Modbus client via resolveRequest()/rejectRequest(), with error response support and message forwarding
+  - `src/nodes/server/modbus-out.html` – Modbus-Out editor UI with help sidebar including Modbus error codes reference and example flow
+  - `test/unit/server/modbus-server-config.test.js` – 14 unit tests for server config (loading, config parsing, request emitter, resolve/reject, server lifecycle, TCP integration, full proxy round-trip)
+  - `test/integration/modbus-server-proxy.test.js` – 18 integration tests with real TCP connections (modbus-in/out loading, validation, filtering, FC 03/04 register reads, FC 05/06 writes, concurrent requests, cleanup)
+  - Registered `modbus-server-config`, `modbus-in`, `modbus-out` nodes in package.json `node-red.nodes`
+
 ### Changed
 - **Code Review #3: Robustness & Correctness Improvements**
   - Fix resource leak: FIFO drop handler in `modbus-write.js` now calls `done()` on dropped messages to release Node-RED message tracking resources
