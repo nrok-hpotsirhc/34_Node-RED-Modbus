@@ -9,6 +9,20 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **MS-3: Client/Master – Read Nodes**
+  - `src/nodes/client/modbus-read.js` – Modbus Read node supporting FC 01–04 via dropdown selection
+  - `src/nodes/client/modbus-read.html` – Read node editor UI with function code selection, address, quantity, zero-based/one-based address offset toggle, polling interval, address hint display, and help sidebar
+  - `src/lib/parser/buffer-parser.js` – Buffer parser for Modbus register data with support for Big-Endian (AB CD), Little-Endian (CD AB), Big-Endian Byte Swap (BA DC), Little-Endian Byte Swap (DC BA) byte orders. Parses Float32, UInt32, Int32, Int16, UInt16 and batch arrays
+  - `src/lib/parser/payload-builder.js` – Payload standardization with metadata (fc, fcName, address, quantity, unitId, timestamp, connection string, buffer)
+  - `test/unit/parser/buffer-parser.test.js` – 49 unit tests for endianness parsing with known Float32/UInt32/Int32 values
+  - `test/unit/parser/payload-builder.test.js` – 31 unit tests for payload building and connection string generation
+  - `test/integration/modbus-read.test.js` – 13 integration tests with node-red-node-test-helper (FC 01–04, address offset, topic handling, error handling, cleanup)
+  - `test/fixtures/register-maps/energy-meter.json` – Example energy meter register map (Float32, UInt32, UInt16)
+  - `test/fixtures/register-maps/temperature-sensor.json` – Temperature sensor with all 4 byte order variants
+  - `test/fixtures/register-maps/digital-io.json` – Digital I/O module with coils and discrete inputs
+  - Registered `modbus-read` node in package.json `node-red.nodes`
+
 ### Changed
 - **Code Review: Quality, Security & Robustness Improvements**
   - Extract `BaseTransport` base class from TCP/RTU transports – eliminates ~150 lines of code duplication (DRY)

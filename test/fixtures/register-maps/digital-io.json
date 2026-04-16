@@ -1,0 +1,20 @@
+{
+  "device": "Generic Digital I/O Module",
+  "description": "Digital I/O module for testing FC 01 (Read Coils) and FC 02 (Read Discrete Inputs)",
+  "coils": {
+    "00001": { "address": 0, "name": "Output 1", "value": true },
+    "00002": { "address": 1, "name": "Output 2", "value": false },
+    "00003": { "address": 2, "name": "Output 3", "value": true },
+    "00004": { "address": 3, "name": "Output 4", "value": true },
+    "00005": { "address": 4, "name": "Output 5", "value": false },
+    "00006": { "address": 5, "name": "Output 6", "value": false },
+    "00007": { "address": 6, "name": "Output 7", "value": true },
+    "00008": { "address": 7, "name": "Output 8", "value": false }
+  },
+  "discreteInputs": {
+    "10001": { "address": 0, "name": "Input 1", "value": false },
+    "10002": { "address": 1, "name": "Input 2", "value": true },
+    "10003": { "address": 2, "name": "Input 3", "value": false },
+    "10004": { "address": 3, "name": "Input 4", "value": true }
+  }
+}
