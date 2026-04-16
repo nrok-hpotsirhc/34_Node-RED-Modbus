@@ -98,17 +98,50 @@ describe('ConnectionPool', function () {
     });
 
     it('should throw if pool is draining', async function () {
-      const pool = new ConnectionPool({ factory: connectedFactory(), size: 1 });
+      let resolveFactory;
+      let callCount = 0;
+      const factory = () => new Promise((resolve) => {
+        callCount++;
+        if (callCount === 1) {
+          resolve(createMockTransport(true));
+        } else {
+          // Hold the second factory call to keep drain in progress
+          resolveFactory = resolve;
+        }
+      });
+
+      const pool = new ConnectionPool({ factory, size: 1 });
       await pool.initialize();
+
+      // Start draining (will destroy connections)
       const drainPromise = pool.drain();
-      // Try to initialize while draining - create a new pool for this
-      const pool2 = new ConnectionPool({ factory: connectedFactory(), size: 1 });
-      await pool2.initialize();
-      await pool2.drain();
-      // After drain completes, re-init should work
-      const count = await pool2.initialize();
-      expect(count).to.equal(1);
       await drainPromise;
+
+      // Pool is drained, re-initialize with a slow factory
+      const slowFactory = () => new Promise((resolve) => {
+        resolveFactory = resolve;
+      });
+      const pool2 = new ConnectionPool({ factory: slowFactory, size: 1 });
+      // Start a concurrent init + drain sequence
+      const initPromise = pool2.initialize();
+      // resolve the factory so init completes
+      resolveFactory(createMockTransport(true));
+      await initPromise;
+
+      // Drain and try to re-initialize during drain
+      const transport = createMockTransport(true);
+      transport.destroy = () => new Promise((resolve) => setTimeout(resolve, 50));
+      pool2._connections = [transport];
+      pool2._initialized = true;
+
+      const drain2 = pool2.drain();
+      try {
+        await pool2.initialize();
+        expect.fail('should have thrown');
+      } catch (err) {
+        expect(err.message).to.include('draining');
+      }
+      await drain2;
     });
   });
 

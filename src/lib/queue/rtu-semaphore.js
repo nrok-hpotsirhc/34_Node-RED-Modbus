@@ -164,15 +164,25 @@ class RtuSemaphore extends EventEmitter {
     // Wait for any current operation to finish (up to timeout)
     if (this._busy) {
       await new Promise((resolve) => {
+        let resolved = false;
+        const timer = setTimeout(() => {
+          if (!resolved) {
+            resolved = true;
+            resolve();
+          }
+        }, this._timeout);
+
         const check = () => {
           if (!this._busy) {
-            resolve();
+            if (!resolved) {
+              resolved = true;
+              clearTimeout(timer);
+              resolve();
+            }
           } else {
             setTimeout(check, 10);
           }
         };
-        // Don't wait forever
-        setTimeout(() => resolve(), this._timeout);
         check();
       });
     }
