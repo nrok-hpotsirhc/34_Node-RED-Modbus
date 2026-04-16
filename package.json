@@ -27,7 +27,10 @@
     "nodes": {
       "modbus-client-config": "src/nodes/config/modbus-client-config.js",
       "modbus-read": "src/nodes/client/modbus-read.js",
-      "modbus-write": "src/nodes/client/modbus-write.js"
+      "modbus-write": "src/nodes/client/modbus-write.js",
+      "modbus-server-config": "src/nodes/config/modbus-server-config.js",
+      "modbus-in": "src/nodes/server/modbus-in.js",
+      "modbus-out": "src/nodes/server/modbus-out.js"
     }
   },
   "engines": {

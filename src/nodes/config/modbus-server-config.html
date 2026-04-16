@@ -1,0 +1,85 @@
+<script type="text/javascript">
+    RED.nodes.registerType('modbus-server-config', {
+        category: 'config',
+        defaults: {
+            name: { value: '' },
+            host: { value: '0.0.0.0' },
+            port: { value: 8502, validate: RED.validators.number() },
+            unitId: { value: 255, validate: RED.validators.number() },
+            responseTimeout: { value: 5000, validate: RED.validators.number() }
+        },
+        label: function () {
+            if (this.name) {
+                return this.name;
+            }
+            return 'Server ' + (this.host || '0.0.0.0') + ':' + (this.port || 8502);
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="modbus-server-config">
+    <div class="form-row">
+        <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-config-input-name" placeholder="Modbus Server">
+    </div>
+
+    <div class="form-row">
+        <label for="node-config-input-host"><i class="fa fa-globe"></i> Listen Host</label>
+        <input type="text" id="node-config-input-host" placeholder="0.0.0.0">
+    </div>
+
+    <div class="form-row">
+        <label for="node-config-input-port"><i class="fa fa-random"></i> Listen Port</label>
+        <input type="text" id="node-config-input-port" placeholder="8502">
+    </div>
+
+    <div class="form-row">
+        <label for="node-config-input-unitId"><i class="fa fa-hashtag"></i> Unit ID</label>
+        <input type="text" id="node-config-input-unitId" placeholder="255 (listen to all)">
+    </div>
+
+    <div class="form-row">
+        <label for="node-config-input-responseTimeout"><i class="fa fa-clock-o"></i> Response Timeout (ms)</label>
+        <input type="text" id="node-config-input-responseTimeout" placeholder="5000">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="modbus-server-config">
+    <p>Configuration node for the Modbus TCP server (slave/listener).</p>
+    <p>
+        This node creates a TCP listener that accepts incoming Modbus requests from
+        external clients and forwards them into the Node-RED flow via <b>modbus-in</b> nodes.
+        Responses are sent back when <b>modbus-out</b> nodes provide the data.
+    </p>
+
+    <h3>Settings</h3>
+    <dl class="message-properties">
+        <dt>Listen Host <span class="property-type">string</span></dt>
+        <dd>IP address to bind the server to. Default: <code>0.0.0.0</code> (all interfaces).</dd>
+        <dt>Listen Port <span class="property-type">number</span></dt>
+        <dd>TCP port to listen on. Default: <code>8502</code>. Standard Modbus port is 502 (may require elevated privileges).</dd>
+        <dt>Unit ID <span class="property-type">number</span></dt>
+        <dd>
+            Modbus unit/slave ID to respond to. Set to <code>255</code> to accept requests
+            for any unit ID. Range: 0–255.
+        </dd>
+        <dt>Response Timeout <span class="property-type">number</span></dt>
+        <dd>
+            Maximum time in milliseconds to wait for a response from the flow before
+            sending an error response (0x0B – Gateway Target Device Failed To Respond).
+            Default: <code>5000</code>.
+        </dd>
+    </dl>
+
+    <h3>Architecture</h3>
+    <p>
+        The server config node implements the <b>Dynamic Server Proxy</b> pattern.
+        Instead of pre-allocating static memory arrays for the entire Modbus address space,
+        incoming requests are published as events. This enables:
+    </p>
+    <ul>
+        <li>No wasted memory for unused address ranges</li>
+        <li>Dynamic data sources (APIs, databases, sensors) as Modbus registers</li>
+        <li>Full flow-based control over response logic</li>
+    </ul>
+</script>

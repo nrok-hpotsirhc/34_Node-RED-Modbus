@@ -14,7 +14,7 @@
 | MS-2 | State Machine & Connection Management | [x] Complete | WP 1.3, WP 1.4 | XState FSM, connection pool, semaphore |
 | MS-3 | Client/Master – Read Nodes | [x] Complete | WP 2.1, WP 2.4 | FC 01-04, payload parsing, endianness |
 | MS-4 | Client/Master – Write Nodes & Queue | [x] Complete | WP 2.2, WP 2.3 | FC 05/06/15/16, backpressure |
-| MS-5 | Server/Slave – Proxy Architecture | [ ] Open | WP 3.1, WP 3.2, WP 3.3 | TCP/RTU listener, Modbus-In/Out nodes |
+| MS-5 | Server/Slave – Proxy Architecture | [x] Complete | WP 3.1, WP 3.2, WP 3.3 | TCP/RTU listener, Modbus-In/Out nodes |
 | MS-6 | Server Caching & Optimization | [ ] Open | WP 3.4 | In-memory hashmap, performance |
 | MS-7 | Modbus/TCP Security | [ ] Open | WP 4.1, WP 4.2, WP 4.3 | TLS 1.3, mTLS, credential management |
 | MS-8 | Quality Assurance & Release | [ ] Open | WP 5.1, WP 5.2, WP 5.3, WP 5.4 | Testing, docs, npm publish |
@@ -142,13 +142,13 @@
 - **WP 3.3** – Modbus-Out node
 
 **Deliverables:**
-- [ ] `src/nodes/config/modbus-server-config.js` – Server config node (TCP listener)
-- [ ] `src/nodes/config/modbus-server-config.html` – Server config UI
-- [ ] `src/nodes/server/modbus-in.js` – Event receiver (request → flow)
-- [ ] `src/nodes/server/modbus-in.html`
-- [ ] `src/nodes/server/modbus-out.js` – Response sender (flow → TCP response)
-- [ ] `src/nodes/server/modbus-out.html`
-- [ ] `test/integration/modbus-server-proxy.test.js` – End-to-end proxy test
+- [x] `src/nodes/config/modbus-server-config.js` – Server config node (TCP listener)
+- [x] `src/nodes/config/modbus-server-config.html` – Server config UI
+- [x] `src/nodes/server/modbus-in.js` – Event receiver (request → flow)
+- [x] `src/nodes/server/modbus-in.html`
+- [x] `src/nodes/server/modbus-out.js` – Response sender (flow → TCP response)
+- [x] `src/nodes/server/modbus-out.html`
+- [x] `test/integration/modbus-server-proxy.test.js` – End-to-end proxy test
 
 **Theoretical Foundations:** See [THEORETICAL_FOUNDATIONS.md §8 Dynamic Server Proxying](docs/THEORETICAL_FOUNDATIONS.md#8-dynamic-address-space-mapping)
 
@@ -243,7 +243,7 @@
 | 2026-04-16 | MS-2 | Complete | XState state machine, connection pool, RTU semaphore (170 passing) |
 | 2026-04-16 | MS-3 | Complete | Read nodes, buffer parser, payload builder (264 passing) |
 | 2026-04-16 | MS-4 | Complete | Write nodes, backpressure queue (334 passing) |
-| _TBD_ | MS-5 | Open | — |
+| 2026-04-16 | MS-5 | Complete | Server proxy architecture, Modbus-In/Out nodes (366 passing) |
 | _TBD_ | MS-6 | Open | — |
 | _TBD_ | MS-7 | Open | — |
 | _TBD_ | MS-8 | Open | — |

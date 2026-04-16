@@ -1,0 +1,124 @@
+<script type="text/javascript">
+    RED.nodes.registerType('modbus-in', {
+        category: 'modbus',
+        color: '#C7E9C0',
+        defaults: {
+            name: { value: '' },
+            server: { value: '', type: 'modbus-server-config', required: true },
+            filterFc: { value: 'all' },
+            filterUnitId: { value: 'all' }
+        },
+        inputs: 0,
+        outputs: 1,
+        icon: 'bridge.svg',
+        paletteLabel: 'modbus in',
+        label: function () {
+            if (this.name) {
+                return this.name;
+            }
+            var parts = [];
+            if (this.filterFc && this.filterFc !== 'all') {
+                parts.push('FC' + this.filterFc);
+            }
+            if (this.filterUnitId && this.filterUnitId !== 'all') {
+                parts.push('Unit ' + this.filterUnitId);
+            }
+            return parts.length > 0 ? 'In: ' + parts.join(', ') : 'modbus in';
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="modbus-in">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Modbus In">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-server"><i class="fa fa-cog"></i> Server</label>
+        <input type="text" id="node-input-server">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-filterFc"><i class="fa fa-filter"></i> Function Code</label>
+        <select id="node-input-filterFc">
+            <option value="all">All Function Codes</option>
+            <option value="1">FC 01 – Read Coils</option>
+            <option value="2">FC 02 – Read Discrete Inputs</option>
+            <option value="3">FC 03 – Read Holding Registers</option>
+            <option value="4">FC 04 – Read Input Registers</option>
+            <option value="5">FC 05 – Write Single Coil</option>
+            <option value="6">FC 06 – Write Single Register</option>
+            <option value="15">FC 15 – Write Multiple Coils</option>
+            <option value="16">FC 16 – Write Multiple Registers</option>
+        </select>
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-filterUnitId"><i class="fa fa-hashtag"></i> Unit ID Filter</label>
+        <select id="node-input-filterUnitId">
+            <option value="all">All Unit IDs</option>
+        </select>
+    </div>
+</script>
+
+<script type="text/html" data-help-name="modbus-in">
+    <p>Receives incoming Modbus requests from external clients and injects them into the flow.</p>
+
+    <h3>Configuration</h3>
+    <dl class="message-properties">
+        <dt>Server <span class="property-type">config node</span></dt>
+        <dd>Select the Modbus server configuration node that defines the TCP listener.</dd>
+        <dt>Function Code <span class="property-type">select</span></dt>
+        <dd>
+            Filter incoming requests by function code. Select "All Function Codes" to receive
+            all requests, or choose a specific FC to only receive matching requests.
+        </dd>
+        <dt>Unit ID Filter <span class="property-type">select</span></dt>
+        <dd>
+            Filter incoming requests by unit ID. Select "All Unit IDs" to receive requests
+            for any unit, or specify a unit ID to filter.
+        </dd>
+    </dl>
+
+    <h3>Output</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">object</span></dt>
+        <dd>Structured request object containing:</dd>
+    </dl>
+    <pre>{
+  "type": "readHoldingRegisters",
+  "fc": 3,
+  "address": 107,
+  "quantity": 2,
+  "unitId": 1,
+  "requestId": "uuid-v4"
+}</pre>
+    <p>For write requests, <code>quantity</code> is replaced by <code>value</code>:</p>
+    <pre>{
+  "type": "writeSingleRegister",
+  "fc": 6,
+  "address": 100,
+  "value": 42,
+  "unitId": 1,
+  "requestId": "uuid-v4"
+}</pre>
+
+    <h3>Details</h3>
+    <p>
+        The <b>modbus-in</b> node is the entry point for the Dynamic Server Proxy pattern.
+        When an external Modbus client sends a request to the server, this node captures it
+        and outputs a structured message containing all request details.
+    </p>
+    <p>
+        <b>Important:</b> The <code>requestId</code> in the payload must be preserved and
+        passed to a <b>modbus-out</b> node to send the response back to the client.
+        If no response is sent within the configured timeout, a Modbus error response
+        (0x0B – Gateway Target Device Failed To Respond) is automatically returned.
+    </p>
+    <p>
+        <b>Filtering:</b> Use the function code and unit ID filters to create specialized
+        handlers for different types of requests. Multiple modbus-in nodes can be connected
+        to the same server config node with different filters.
+    </p>
+</script>
