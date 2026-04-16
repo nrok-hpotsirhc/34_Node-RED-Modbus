@@ -1,0 +1,13 @@
+analysiere dieses file und erstelle mir daraus ein agents.md
+dann erstelle mir noch ein file mit sämtlichen arbeitspaketen und bereite die ordner struktur des projekts vor. 
+Bereite auch schon eine vollständige ausarbeitung der theoretischen grundlagen vor und verweise auf diese im agents file verweise auch auf die arbeitspakte
+Weise darin auch auf alle referenzen hin.
+erstelle noch ein gitignore und checke dann alles ein
+gruppiere alle arbeitspakete in meilensteine die pro agent session abgearbeitet werden können. 
+dokumentiere die meilensteine abenfalls um sie als leitfaden zu nutzen
+ich möchte auch sehr weitreichende automatisierte funktionale unit test haben. 
+außerdem soll das projekt sehr gut dokumentiert sein für entwickler die daran weiterarbeiten wollen es testen oder anwenden wollen. 
+auch alles was getestet wird soll erklärt werden und stetig weitergepflegt werden wenn es updates gibt.
+vermerke auch im agents file und der test doku, dass jegliche art von mock- oder testdaten sichtbar dokumentiert werden müssen um sie schnell finden und einfach entfernen zu können
+schlage mir einen guten namen für das repo vor
+stelle sicher, dass es keine rechtlichen probleme gibt durch infos oder recherchen ? könnte es plagiat vorwürfe geben? ich möchte dass du das projekt, mit den recherche daten und den veröffentlichen projektdaten und sourcen vergleichst! es darf keine lizenzrechtlichen probleme geben und der code darf nicht kopiert sein.
