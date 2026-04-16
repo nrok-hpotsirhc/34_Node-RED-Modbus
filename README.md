@@ -11,12 +11,12 @@
 
 ## Development Progress
 
-> **Current State:** Project foundation & documentation complete – implementation upcoming.
+> **Current State:** Transport layer and state machine complete – client node implementation next.
 
 | # | Milestone | Status | Progress |
 |---|-----------|--------|----------|
-| MS-1 | Project Foundation & Transport Layer | 🔲 Open | `░░░░░░░░░░` 0 % |
-| MS-2 | State Machine & Connection Management | 🔲 Open | `░░░░░░░░░░` 0 % |
+| MS-1 | Project Foundation & Transport Layer | ✅ Complete | `██████████` 100 % |
+| MS-2 | State Machine & Connection Management | ✅ Complete | `██████████` 100 % |
 | MS-3 | Client/Master – Read Nodes | 🔲 Open | `░░░░░░░░░░` 0 % |
 | MS-4 | Client/Master – Write Nodes & Queue | 🔲 Open | `░░░░░░░░░░` 0 % |
 | MS-5 | Server/Slave – Proxy Architecture | 🔲 Open | `░░░░░░░░░░` 0 % |
@@ -24,7 +24,7 @@
 | MS-7 | Modbus/TCP Security | 🔲 Open | `░░░░░░░░░░` 0 % |
 | MS-8 | Quality Assurance & Release | 🔲 Open | `░░░░░░░░░░` 0 % |
 
-**Overall Progress: 0 / 8 milestones completed**
+**Overall Progress: 2 / 8 milestones completed**
 
 > Milestone details: [MILESTONES.md](MILESTONES.md) · Work packages: [docs/WORK_PACKAGES.md](docs/WORK_PACKAGES.md)
 
