@@ -1,0 +1,60 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build output
+dist/
+build/
+*.tgz
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Node-RED credentials (NEVER commit)
+*_cred.json
+flows_cred.json
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Test artifacts
+test/tmp/
+test/output/
+.mocha-results/
+
+# Documentation build
+docs/gen/
+
+# OS-specific
+*.orig

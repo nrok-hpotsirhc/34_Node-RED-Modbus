@@ -1,0 +1,8 @@
+spec-version: 0.0.1
+ui: bdd
+timeout: 5000
+recursive: true
+spec:
+  - "test/unit/**/*.test.js"
+  - "test/integration/**/*.test.js"
+exit: true

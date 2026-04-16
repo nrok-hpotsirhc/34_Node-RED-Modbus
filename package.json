@@ -1,0 +1,59 @@
+{
+  "name": "node-red-contrib-modbus-forge",
+  "version": "0.1.0",
+  "description": "Next-generation Modbus TCP/RTU integration for Node-RED with XState-powered state management, connection pooling, backpressure control, and Modbus/TCP Security (TLS) support.",
+  "license": "BSD-3-Clause",
+  "author": "[HIER AUTOR EINTRAGEN]",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/[HIER-OWNER]/node-red-contrib-modbus-forge.git"
+  },
+  "keywords": [
+    "node-red",
+    "modbus",
+    "modbus-tcp",
+    "modbus-rtu",
+    "modbus-serial",
+    "industrial",
+    "iiot",
+    "automation",
+    "scada",
+    "plc",
+    "ot-security",
+    "tls"
+  ],
+  "node-red": {
+    "version": ">=3.0.0",
+    "nodes": {}
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "main": "src/index.js",
+  "scripts": {
+    "test": "mocha --config .mocharc.yml",
+    "test:unit": "mocha --config .mocharc.yml test/unit/**/*.test.js",
+    "test:integration": "mocha --config .mocharc.yml --timeout 10000 test/integration/**/*.test.js",
+    "test:coverage": "nyc --reporter=text --reporter=html mocha --config .mocharc.yml",
+    "lint": "eslint src/ test/",
+    "lint:fix": "eslint src/ test/ --fix",
+    "clean": "rimraf coverage .nyc_output dist"
+  },
+  "dependencies": {
+    "modbus-serial": "^8.0.0",
+    "xstate": "^5.0.0"
+  },
+  "optionalDependencies": {
+    "serialport": "^13.0.0"
+  },
+  "devDependencies": {
+    "mocha": "^10.0.0",
+    "chai": "^4.0.0",
+    "sinon": "^17.0.0",
+    "nyc": "^15.0.0",
+    "eslint": "^8.0.0",
+    "rimraf": "^5.0.0",
+    "node-red": "^4.0.0",
+    "node-red-node-test-helper": "^0.3.0"
+  }
+}
