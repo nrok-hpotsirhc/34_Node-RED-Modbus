@@ -5,6 +5,28 @@
 [![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD--3--Clause-blue.svg)](LICENSE)
 [![Node-RED](https://img.shields.io/badge/Platform-Node--RED-red.svg)](https://nodered.org)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18-green.svg)](https://nodejs.org)
+[![Status](https://img.shields.io/badge/Status-In%20Entwicklung-orange.svg)](#entwicklungsfortschritt)
+
+---
+
+## Entwicklungsfortschritt
+
+> **Aktueller Stand:** Projektfundament & Dokumentation abgeschlossen – Implementierung steht bevor.
+
+| # | Meilenstein | Status | Fortschritt |
+|---|-------------|--------|-------------|
+| MS-1 | Projektfundament & Transportschicht | 🔲 Offen | `░░░░░░░░░░` 0 % |
+| MS-2 | Zustandsautomat & Connection Management | 🔲 Offen | `░░░░░░░░░░` 0 % |
+| MS-3 | Client/Master – Lese-Nodes | 🔲 Offen | `░░░░░░░░░░` 0 % |
+| MS-4 | Client/Master – Schreib-Nodes & Queue | 🔲 Offen | `░░░░░░░░░░` 0 % |
+| MS-5 | Server/Slave – Proxy-Architektur | 🔲 Offen | `░░░░░░░░░░` 0 % |
+| MS-6 | Server-Caching & Optimierung | 🔲 Offen | `░░░░░░░░░░` 0 % |
+| MS-7 | Modbus/TCP Security | 🔲 Offen | `░░░░░░░░░░` 0 % |
+| MS-8 | Qualitätssicherung & Release | 🔲 Offen | `░░░░░░░░░░` 0 % |
+
+**Gesamtfortschritt: 0 / 8 Meilensteine abgeschlossen**
+
+> Details zu jedem Meilenstein: [MILESTONES.md](MILESTONES.md) · Arbeitspakete: [docs/ARBEITSPAKETE.md](docs/ARBEITSPAKETE.md)
 
 ---
 
