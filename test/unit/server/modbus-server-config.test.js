@@ -77,7 +77,7 @@ describe('modbus-server-config (unit)', function () {
     helper.load([modbusServerConfig], flow, function () {
       const serverNode = helper.getNode('server1');
       expect(serverNode.host).to.equal('0.0.0.0');
-      expect(serverNode.port).to.equal(502);
+      expect(serverNode.port).to.equal(8502);
       expect(serverNode.unitId).to.equal(255);
       expect(serverNode.responseTimeout).to.equal(5000);
       done();

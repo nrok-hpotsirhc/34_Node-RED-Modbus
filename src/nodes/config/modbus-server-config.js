@@ -55,7 +55,7 @@ module.exports = function (RED) {
     // Store configuration
     node.name = config.name || '';
     node.host = config.host || '0.0.0.0';
-    node.port = parseIntSafe(config.port, 502);
+    node.port = parseIntSafe(config.port, 8502);
     node.unitId = parseIntSafe(config.unitId, 255);
     node.responseTimeout = parseIntSafe(config.responseTimeout, 5000);
 
