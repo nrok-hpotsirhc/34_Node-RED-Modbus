@@ -12,13 +12,16 @@
             dataBits: { value: '8' },
             stopBits: { value: '1' },
             unitId: { value: 1, validate: RED.validators.number() },
-            timeout: { value: 1000, validate: RED.validators.number() }
+            timeout: { value: 1000, validate: RED.validators.number() },
+            tlsEnabled: { value: false },
+            rejectUnauthorized: { value: true }
         },
         credentials: {
             password: { type: 'password' },
+            caPath: { type: 'text' },
             certPath: { type: 'text' },
             keyPath: { type: 'password' },
-            caPath: { type: 'text' }
+            passphrase: { type: 'password' }
         },
         label: function () {
             if (this.name) {
@@ -27,23 +30,51 @@
             if (this.connectionType === 'rtu') {
                 return 'RTU ' + (this.serialPort || '/dev/ttyUSB0') + '@' + (this.baudRate || '9600');
             }
-            return 'TCP ' + (this.host || '127.0.0.1') + ':' + (this.port || 502);
+            var suffix = this.tlsEnabled ? ' (TLS)' : '';
+            return 'TCP ' + (this.host || '127.0.0.1') + ':' + (this.port || 502) + suffix;
         },
         oneditprepare: function () {
             var connectionType = $('#node-config-input-connectionType');
+            var tlsEnabled = $('#node-config-input-tlsEnabled');
+            var portInput = $('#node-config-input-port');
 
             function toggleFields() {
                 var type = connectionType.val();
                 if (type === 'tcp') {
                     $('.modbus-tcp-fields').show();
                     $('.modbus-rtu-fields').hide();
+                    toggleTlsFields();
                 } else {
                     $('.modbus-tcp-fields').hide();
                     $('.modbus-rtu-fields').show();
+                    $('.modbus-tls-fields').hide();
+                    $('.modbus-tls-toggle').hide();
+                }
+            }
+
+            function toggleTlsFields() {
+                var type = connectionType.val();
+                if (type === 'tcp') {
+                    $('.modbus-tls-toggle').show();
+                    if (tlsEnabled.is(':checked')) {
+                        $('.modbus-tls-fields').show();
+                    } else {
+                        $('.modbus-tls-fields').hide();
+                    }
                 }
             }
 
             connectionType.on('change', toggleFields);
+            tlsEnabled.on('change', function () {
+                toggleTlsFields();
+                // Auto-set port when TLS is toggled
+                var currentPort = parseInt(portInput.val(), 10);
+                if (tlsEnabled.is(':checked') && currentPort === 502) {
+                    portInput.val(802);
+                } else if (!tlsEnabled.is(':checked') && currentPort === 802) {
+                    portInput.val(502);
+                }
+            });
             toggleFields();
         }
     });
@@ -124,6 +155,41 @@
         <label for="node-config-input-timeout"><i class="fa fa-clock-o"></i> Timeout (ms)</label>
         <input type="text" id="node-config-input-timeout" placeholder="1000">
     </div>
+
+    <!-- TLS Toggle (TCP only) -->
+    <hr>
+    <div class="modbus-tls-toggle">
+        <div class="form-row">
+            <label for="node-config-input-tlsEnabled"><i class="fa fa-lock"></i> Enable TLS</label>
+            <input type="checkbox" id="node-config-input-tlsEnabled" style="width:auto; margin-left:5px; vertical-align:top;">
+            <span style="font-size:0.9em; color:#888;"> Modbus/TCP Security (port 802)</span>
+        </div>
+    </div>
+
+    <!-- TLS Fields -->
+    <div class="modbus-tls-fields" style="display:none;">
+        <div class="form-row">
+            <label for="node-config-input-caPath"><i class="fa fa-certificate"></i> CA Certificate</label>
+            <input type="text" id="node-config-input-caPath" placeholder="/path/to/ca-cert.pem">
+        </div>
+        <div class="form-row">
+            <label for="node-config-input-certPath"><i class="fa fa-id-card"></i> Client Certificate</label>
+            <input type="text" id="node-config-input-certPath" placeholder="/path/to/client-cert.pem">
+        </div>
+        <div class="form-row">
+            <label for="node-config-input-keyPath"><i class="fa fa-key"></i> Private Key</label>
+            <input type="password" id="node-config-input-keyPath" placeholder="/path/to/client-key.pem">
+        </div>
+        <div class="form-row">
+            <label for="node-config-input-passphrase"><i class="fa fa-unlock-alt"></i> Key Passphrase</label>
+            <input type="password" id="node-config-input-passphrase" placeholder="Optional passphrase">
+        </div>
+        <div class="form-row">
+            <label for="node-config-input-rejectUnauthorized"><i class="fa fa-shield"></i> Verify Server</label>
+            <input type="checkbox" id="node-config-input-rejectUnauthorized" style="width:auto; margin-left:5px; vertical-align:top;" checked>
+            <span style="font-size:0.9em; color:#888;"> Reject unauthorized certificates (recommended)</span>
+        </div>
+    </div>
 </script>
 
 <script type="text/html" data-help-name="modbus-client-config">
@@ -140,7 +206,7 @@
         <dt>Host <span class="property-type">string</span></dt>
         <dd>IP address or hostname of the Modbus device. Default: <code>127.0.0.1</code></dd>
         <dt>Port <span class="property-type">number</span></dt>
-        <dd>TCP port number. Default: <code>502</code></dd>
+        <dd>TCP port number. Default: <code>502</code> (or <code>802</code> with TLS enabled)</dd>
     </dl>
     <h3>RTU Settings</h3>
     <dl class="message-properties">
@@ -162,4 +228,31 @@
         <dt>Timeout <span class="property-type">number</span></dt>
         <dd>Response timeout in milliseconds. Default: <code>1000</code></dd>
     </dl>
+    <h3>Modbus/TCP Security (TLS)</h3>
+    <p>
+        When enabled, the connection is secured using TLS 1.2/1.3 as per the
+        Modbus/TCP Security specification. The default port changes to <code>802</code>
+        (IANA-registered for Modbus/TCP Security).
+    </p>
+    <dl class="message-properties">
+        <dt>Enable TLS <span class="property-type">boolean</span></dt>
+        <dd>Activate Modbus/TCP Security. Port is automatically set to 802.</dd>
+        <dt>CA Certificate <span class="property-type">string</span></dt>
+        <dd>File path to the CA certificate (PEM format) for verifying the server certificate.</dd>
+        <dt>Client Certificate <span class="property-type">string</span></dt>
+        <dd>File path to the client certificate (PEM format) for mutual TLS (mTLS) authentication.</dd>
+        <dt>Private Key <span class="property-type">string</span></dt>
+        <dd>File path to the client private key (PEM format). Required when a client certificate is provided.</dd>
+        <dt>Key Passphrase <span class="property-type">string</span></dt>
+        <dd>Optional passphrase for encrypted private keys.</dd>
+        <dt>Verify Server <span class="property-type">boolean</span></dt>
+        <dd>
+            When enabled (default), the server's certificate must be valid and signed by a trusted CA.
+            <b>Warning:</b> Disabling this removes TLS peer verification and is NOT recommended for production.
+        </dd>
+    </dl>
+    <p>
+        <b>Security note:</b> Certificate file paths are stored in the Node-RED credential store
+        and never in <code>flow.json</code>. Private keys and passphrases are encrypted.
+    </p>
 </script>

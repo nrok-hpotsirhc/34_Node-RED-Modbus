@@ -1,9 +1,12 @@
 'use strict';
 
 const { EventEmitter } = require('events');
+const tls = require('node:tls');
+const fs = require('node:fs');
 const ModbusRTU = require('modbus-serial');
 const crypto = require('crypto');
 const { RegisterCache } = require('../../lib/cache/register-cache');
+const { CertificateValidator } = require('../../lib/security/certificate-validator');
 
 const ServerTCP = ModbusRTU.ServerTCP;
 
@@ -42,6 +45,10 @@ const FC_TYPE_MAP = {
  * Responses are sent back when Modbus-Out nodes provide data via
  * the resolveRequest() method.
  *
+ * Supports Modbus/TCP Security (TLS 1.2/1.3, mTLS) via WP 4.1–4.3.
+ * When TLS is enabled, the server listens on a TLS-secured port
+ * and requires client certificate authentication (mTLS).
+ *
  * This implements the Dynamic Server Proxy pattern described in
  * THEORETICAL_FOUNDATIONS.md §8.
  *
@@ -59,6 +66,31 @@ module.exports = function (RED) {
     node.port = parseIntSafe(config.port, 8502);
     node.unitId = parseIntSafe(config.unitId, 255);
     node.responseTimeout = parseIntSafe(config.responseTimeout, 5000);
+
+    // TLS configuration (WP 4.1–4.3: Modbus/TCP Security)
+    node.tlsEnabled = config.tlsEnabled === true || config.tlsEnabled === 'true';
+    node.rejectUnauthorized = config.rejectUnauthorized !== false && config.rejectUnauthorized !== 'false';
+
+    // Validate TLS credentials on startup if TLS is enabled
+    if (node.tlsEnabled) {
+      const validator = new CertificateValidator();
+      const creds = node.credentials || {};
+      const result = validator.validateConfig({
+        caPath: creds.serverCaPath || null,
+        certPath: creds.serverCertPath || null,
+        keyPath: creds.serverKeyPath || null,
+        passphrase: creds.serverPassphrase || null
+      });
+
+      for (const warning of result.warnings) {
+        node.warn(`TLS: ${warning}`);
+      }
+      if (!result.valid) {
+        for (const error of result.errors) {
+          node.error(`TLS: ${error}`);
+        }
+      }
+    }
 
     // Cache configuration (WP 3.4)
     node._cache = new RegisterCache({
@@ -268,6 +300,7 @@ module.exports = function (RED) {
 
     /**
      * Start the Modbus TCP server.
+     * When TLS is enabled, wraps the server in a TLS layer.
      */
     node.startServer = function () {
       if (node._started) {
@@ -276,22 +309,65 @@ module.exports = function (RED) {
 
       try {
         const vector = buildVector();
-        node._server = new ServerTCP(vector, {
+        const serverOptions = {
           host: node.host,
           port: node.port,
           unitID: node.unitId,
           debug: false
-        });
+        };
 
-        node._server.on('initialized', function () {
-          node._started = true;
-          node.log(`Modbus TCP server listening on ${node.host}:${node.port} (unitId: ${node.unitId})`);
-          node._requestEmitter.emit('serverStatus', {
-            fill: 'green',
-            shape: 'dot',
-            text: `Listening on ${node.host}:${node.port}`
+        if (node.tlsEnabled) {
+          const creds = node.credentials || {};
+          const tlsOptions = {
+            minVersion: 'TLSv1.2'
+          };
+
+          if (creds.serverCaPath) {
+            tlsOptions.ca = fs.readFileSync(creds.serverCaPath);
+            tlsOptions.requestCert = true;
+            tlsOptions.rejectUnauthorized = node.rejectUnauthorized;
+          }
+          if (creds.serverCertPath) {
+            tlsOptions.cert = fs.readFileSync(creds.serverCertPath);
+          }
+          if (creds.serverKeyPath) {
+            tlsOptions.key = fs.readFileSync(creds.serverKeyPath);
+          }
+          if (creds.serverPassphrase) {
+            tlsOptions.passphrase = creds.serverPassphrase;
+          }
+
+          // Create TLS server and pass to ServerTCP via serverOptions
+          const tlsServer = tls.createServer(tlsOptions);
+          serverOptions.server = tlsServer;
+
+          // Start TLS server listening
+          tlsServer.listen(node.port, node.host, function () {
+            node._started = true;
+            node.log(`Modbus TCP+TLS server listening on ${node.host}:${node.port} (unitId: ${node.unitId})`);
+            node._requestEmitter.emit('serverStatus', {
+              fill: 'green',
+              shape: 'dot',
+              text: `TLS Listening on ${node.host}:${node.port}`
+            });
           });
-        });
+
+          node._tlsServer = tlsServer;
+        }
+
+        node._server = new ServerTCP(vector, serverOptions);
+
+        if (!node.tlsEnabled) {
+          node._server.on('initialized', function () {
+            node._started = true;
+            node.log(`Modbus TCP server listening on ${node.host}:${node.port} (unitId: ${node.unitId})`);
+            node._requestEmitter.emit('serverStatus', {
+              fill: 'green',
+              shape: 'dot',
+              text: `Listening on ${node.host}:${node.port}`
+            });
+          });
+        }
 
         node._server.on('socketError', function (err) {
           node.warn(`Modbus server socket error: ${err.message}`);
@@ -334,16 +410,34 @@ module.exports = function (RED) {
         }
         node._pendingRequests.clear();
 
-        if (node._server) {
-          node._server.close(function () {
+        const closeModbusServer = function (next) {
+          if (node._server) {
+            node._server.close(function () {
+              node._server = null;
+              next();
+            });
+          } else {
+            next();
+          }
+        };
+
+        const closeTlsServer = function (next) {
+          if (node._tlsServer) {
+            node._tlsServer.close(function () {
+              node._tlsServer = null;
+              next();
+            });
+          } else {
+            next();
+          }
+        };
+
+        closeModbusServer(function () {
+          closeTlsServer(function () {
             node._started = false;
-            node._server = null;
             resolve();
           });
-        } else {
-          node._started = false;
-          resolve();
-        }
+        });
       });
     };
 
@@ -369,5 +463,12 @@ module.exports = function (RED) {
     });
   }
 
-  RED.nodes.registerType('modbus-server-config', ModbusServerConfig);
+  RED.nodes.registerType('modbus-server-config', ModbusServerConfig, {
+    credentials: {
+      serverCaPath: { type: 'text' },
+      serverCertPath: { type: 'text' },
+      serverKeyPath: { type: 'password' },
+      serverPassphrase: { type: 'password' }
+    }
+  });
 };

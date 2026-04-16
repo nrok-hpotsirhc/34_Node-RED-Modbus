@@ -9,17 +9,27 @@
             responseTimeout: { value: 5000, validate: RED.validators.number() },
             cacheEnabled: { value: false },
             cacheMaxSize: { value: 10000, validate: RED.validators.number() },
-            cacheTTL: { value: 60000, validate: RED.validators.number() }
+            cacheTTL: { value: 60000, validate: RED.validators.number() },
+            tlsEnabled: { value: false },
+            rejectUnauthorized: { value: true }
+        },
+        credentials: {
+            serverCaPath: { type: 'text' },
+            serverCertPath: { type: 'text' },
+            serverKeyPath: { type: 'password' },
+            serverPassphrase: { type: 'password' }
         },
         label: function () {
             if (this.name) {
                 return this.name;
             }
-            return 'Server ' + (this.host || '0.0.0.0') + ':' + (this.port || 8502);
+            var suffix = this.tlsEnabled ? ' (TLS)' : '';
+            return 'Server ' + (this.host || '0.0.0.0') + ':' + (this.port || 8502) + suffix;
         },
         oneditprepare: function () {
             var cacheEnabled = $('#node-config-input-cacheEnabled');
             var cacheFields = $('.modbus-cache-field');
+            var tlsEnabled = $('#node-config-input-tlsEnabled');
 
             function toggleCacheFields() {
                 if (cacheEnabled.is(':checked')) {
@@ -29,8 +39,18 @@
                 }
             }
 
+            function toggleTlsFields() {
+                if (tlsEnabled.is(':checked')) {
+                    $('.modbus-server-tls-fields').show();
+                } else {
+                    $('.modbus-server-tls-fields').hide();
+                }
+            }
+
             cacheEnabled.on('change', toggleCacheFields);
+            tlsEnabled.on('change', toggleTlsFields);
             toggleCacheFields();
+            toggleTlsFields();
         }
     });
 </script>
@@ -77,6 +97,38 @@
     <div class="form-row modbus-cache-field">
         <label for="node-config-input-cacheMaxSize"><i class="fa fa-th"></i> Max Cache Size</label>
         <input type="text" id="node-config-input-cacheMaxSize" placeholder="10000">
+    </div>
+
+    <!-- TLS Section (Modbus/TCP Security) -->
+    <hr>
+    <div class="form-row">
+        <label for="node-config-input-tlsEnabled"><i class="fa fa-lock"></i> Enable TLS</label>
+        <input type="checkbox" id="node-config-input-tlsEnabled" style="width:auto; margin-left:5px; vertical-align:top;">
+        <span style="font-size:0.9em; color:#888;"> Modbus/TCP Security (TLS listener)</span>
+    </div>
+
+    <div class="modbus-server-tls-fields" style="display:none;">
+        <div class="form-row">
+            <label for="node-config-input-serverCaPath"><i class="fa fa-certificate"></i> CA Certificate</label>
+            <input type="text" id="node-config-input-serverCaPath" placeholder="/path/to/ca-cert.pem">
+        </div>
+        <div class="form-row">
+            <label for="node-config-input-serverCertPath"><i class="fa fa-id-card"></i> Server Certificate</label>
+            <input type="text" id="node-config-input-serverCertPath" placeholder="/path/to/server-cert.pem">
+        </div>
+        <div class="form-row">
+            <label for="node-config-input-serverKeyPath"><i class="fa fa-key"></i> Server Private Key</label>
+            <input type="password" id="node-config-input-serverKeyPath" placeholder="/path/to/server-key.pem">
+        </div>
+        <div class="form-row">
+            <label for="node-config-input-serverPassphrase"><i class="fa fa-unlock-alt"></i> Key Passphrase</label>
+            <input type="password" id="node-config-input-serverPassphrase" placeholder="Optional passphrase">
+        </div>
+        <div class="form-row">
+            <label for="node-config-input-rejectUnauthorized"><i class="fa fa-shield"></i> Verify Clients</label>
+            <input type="checkbox" id="node-config-input-rejectUnauthorized" style="width:auto; margin-left:5px; vertical-align:top;" checked>
+            <span style="font-size:0.9em; color:#888;"> Require valid client certificates (mTLS)</span>
+        </div>
     </div>
 </script>
 
@@ -144,5 +196,33 @@
     <p>
         <b>Write invalidation:</b> When a write operation (FC 05/06/15/16) is received,
         all cached read entries at the affected addresses are automatically invalidated.
+    </p>
+
+    <h3>Modbus/TCP Security (TLS)</h3>
+    <p>
+        When enabled, the server listens on a TLS-secured port as per the Modbus/TCP
+        Security specification. This provides encrypted communication and mutual
+        authentication (mTLS) using X.509v3 certificates.
+    </p>
+    <dl class="message-properties">
+        <dt>Enable TLS <span class="property-type">boolean</span></dt>
+        <dd>Activate TLS for the server listener.</dd>
+        <dt>CA Certificate <span class="property-type">string</span></dt>
+        <dd>File path to the CA certificate (PEM format) for verifying client certificates.</dd>
+        <dt>Server Certificate <span class="property-type">string</span></dt>
+        <dd>File path to the server certificate (PEM format) presented to connecting clients.</dd>
+        <dt>Server Private Key <span class="property-type">string</span></dt>
+        <dd>File path to the server private key (PEM format).</dd>
+        <dt>Key Passphrase <span class="property-type">string</span></dt>
+        <dd>Optional passphrase for encrypted private keys.</dd>
+        <dt>Verify Clients <span class="property-type">boolean</span></dt>
+        <dd>
+            When enabled (default), connecting clients must present a valid certificate
+            signed by the configured CA. This enables mutual TLS (mTLS) authentication.
+        </dd>
+    </dl>
+    <p>
+        <b>Security note:</b> Certificate file paths are stored in the Node-RED credential store
+        and never in <code>flow.json</code>. Private keys and passphrases are encrypted.
     </p>
 </script>
