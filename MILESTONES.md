@@ -12,7 +12,7 @@
 |---|-----------|--------|---------------|-------|
 | MS-1 | Project Foundation & Transport Layer | [x] Complete | WP 1.1, WP 1.2 | Library abstraction, config node UI |
 | MS-2 | State Machine & Connection Management | [x] Complete | WP 1.3, WP 1.4 | XState FSM, connection pool, semaphore |
-| MS-3 | Client/Master – Read Nodes | [ ] Open | WP 2.1, WP 2.4 | FC 01-04, payload parsing, endianness |
+| MS-3 | Client/Master – Read Nodes | [x] Complete | WP 2.1, WP 2.4 | FC 01-04, payload parsing, endianness |
 | MS-4 | Client/Master – Write Nodes & Queue | [ ] Open | WP 2.2, WP 2.3 | FC 05/06/15/16, backpressure |
 | MS-5 | Server/Slave – Proxy Architecture | [ ] Open | WP 3.1, WP 3.2, WP 3.3 | TCP/RTU listener, Modbus-In/Out nodes |
 | MS-6 | Server Caching & Optimization | [ ] Open | WP 3.4 | In-memory hashmap, performance |
@@ -87,14 +87,14 @@
 - **WP 2.4** – Payload standardization, buffer parsing, endianness handling
 
 **Deliverables:**
-- [ ] `src/nodes/client/modbus-read.js` – Read node (all 4 FCs via dropdown)
-- [ ] `src/nodes/client/modbus-read.html` – Read node UI (FC, address, length, address offset toggle)
-- [ ] `src/lib/parser/buffer-parser.js` – Big-endian / little-endian / word-swap conversion
-- [ ] `src/lib/parser/payload-builder.js` – msg.payload standardization with metadata
-- [ ] `test/unit/parser/buffer-parser.test.js` – Endianness tests with known Float32 values
-- [ ] `test/unit/parser/payload-builder.test.js`
-- [ ] `test/fixtures/register-maps/` – Example register maps of various devices
-- [ ] `test/integration/modbus-read.test.js` – Integration with node-red-node-test-helper
+- [x] `src/nodes/client/modbus-read.js` – Read node (all 4 FCs via dropdown)
+- [x] `src/nodes/client/modbus-read.html` – Read node UI (FC, address, length, address offset toggle)
+- [x] `src/lib/parser/buffer-parser.js` – Big-endian / little-endian / word-swap conversion
+- [x] `src/lib/parser/payload-builder.js` – msg.payload standardization with metadata
+- [x] `test/unit/parser/buffer-parser.test.js` – Endianness tests with known Float32 values
+- [x] `test/unit/parser/payload-builder.test.js`
+- [x] `test/fixtures/register-maps/` – Example register maps of various devices
+- [x] `test/integration/modbus-read.test.js` – Integration with node-red-node-test-helper
 
 **Theoretical Foundations:** See [THEORETICAL_FOUNDATIONS.md §3 Data Model](docs/THEORETICAL_FOUNDATIONS.md#3-the-modbus-data-model) and [§4 Endianness](docs/THEORETICAL_FOUNDATIONS.md#4-endianness-in-javascript)
 
@@ -241,7 +241,7 @@
 |------|-----------|--------|-------|
 | 2026-04-16 | MS-1 | Complete | Transport layer, config node, unit tests (82 passing) |
 | 2026-04-16 | MS-2 | Complete | XState state machine, connection pool, RTU semaphore (170 passing) |
-| _TBD_ | MS-3 | Open | — |
+| 2026-04-16 | MS-3 | Complete | Read nodes, buffer parser, payload builder (264 passing) |
 | _TBD_ | MS-4 | Open | — |
 | _TBD_ | MS-5 | Open | — |
 | _TBD_ | MS-6 | Open | — |

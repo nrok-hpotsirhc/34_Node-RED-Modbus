@@ -1,0 +1,16 @@
+{
+  "device": "Generic Energy Meter",
+  "description": "Typical energy meter register map for testing FC 03 (Holding Registers) and FC 04 (Input Registers)",
+  "holdingRegisters": {
+    "40001": { "address": 0, "name": "Voltage L1", "type": "Float32", "unit": "V", "registers": [0x43A0, 0x0000], "value": 320.0 },
+    "40003": { "address": 2, "name": "Voltage L2", "type": "Float32", "unit": "V", "registers": [0x43A1, 0x999A], "value": 323.2 },
+    "40005": { "address": 4, "name": "Current L1", "type": "Float32", "unit": "A", "registers": [0x41C8, 0x0000], "value": 25.0 },
+    "40007": { "address": 6, "name": "Power Factor", "type": "Float32", "unit": "", "registers": [0x3F73, 0x3333], "value": 0.95 },
+    "40009": { "address": 8, "name": "Total Energy", "type": "UInt32", "unit": "Wh", "registers": [0x0001, 0x86A0], "value": 100000 },
+    "40011": { "address": 10, "name": "Baud Rate Index", "type": "UInt16", "unit": "", "registers": [0x0003], "value": 3 }
+  },
+  "inputRegisters": {
+    "30001": { "address": 0, "name": "Temperature", "type": "Int16", "unit": "°C x10", "registers": [0x00FA], "value": 250 },
+    "30002": { "address": 1, "name": "Humidity", "type": "UInt16", "unit": "%", "registers": [0x0037], "value": 55 }
+  }
+}

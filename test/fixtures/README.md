@@ -13,7 +13,9 @@ test/fixtures/
 ### register-maps/
 | File | Description | Used In | Last Updated | Removable? |
 |------|-------------|---------|-------------|------------|
-| _empty_ | Will be populated in MS-3 (WP 2.1/2.4) | — | — | — |
+| `energy-meter.json` | Generic energy meter register map with Float32, UInt32, UInt16 values | `test/unit/parser/*.test.js`, `test/integration/modbus-read.test.js` | 2026-04-16 | no – used for parser and integration tests |
+| `temperature-sensor.json` | Temperature sensor with Float32 values in all 4 byte order variants | `test/unit/parser/buffer-parser.test.js` | 2026-04-16 | no – used for endianness tests |
+| `digital-io.json` | Digital I/O module with coils and discrete inputs | `test/integration/modbus-read.test.js` | 2026-04-16 | no – used for boolean data tests |
 ### certs/
 | File | Description | Used In | Last Updated | Removable? |
 |------|-------------|---------|-------------|------------|

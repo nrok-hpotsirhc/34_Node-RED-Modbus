@@ -1,0 +1,30 @@
+{
+  "device": "Generic Temperature Sensor",
+  "description": "Temperature sensor with Float32 values across 2 registers for testing endianness handling",
+  "holdingRegisters": {
+    "40001": {
+      "address": 0,
+      "name": "Temperature 1",
+      "type": "Float32",
+      "unit": "°C",
+      "byteOrders": {
+        "BE":    { "registers": [0x4248, 0x0000], "value": 50.0 },
+        "LE":    { "registers": [0x0000, 0x4248], "value": 50.0 },
+        "BE_BS": { "registers": [0x4842, 0x0000], "value": 50.0 },
+        "LE_BS": { "registers": [0x0000, 0x4842], "value": 50.0 }
+      }
+    },
+    "40003": {
+      "address": 2,
+      "name": "Temperature 2",
+      "type": "Float32",
+      "unit": "°C",
+      "byteOrders": {
+        "BE":    { "registers": [0xC248, 0x0000], "value": -50.0 },
+        "LE":    { "registers": [0x0000, 0xC248], "value": -50.0 },
+        "BE_BS": { "registers": [0x48C2, 0x0000], "value": -50.0 },
+        "LE_BS": { "registers": [0x0000, 0x48C2], "value": -50.0 }
+      }
+    }
+  }
+}
