@@ -1,0 +1,157 @@
+<script type="text/javascript">
+    RED.nodes.registerType('modbus-discover', {
+        category: 'modbus',
+        color: '#C0DEED',
+        defaults: {
+            name: { value: '' },
+            server: { value: '', type: 'modbus-client-config', required: true },
+            deviceIdCode: { value: '1' },
+            objectId: { value: 0, validate: RED.validators.number() }
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: 'search.svg',
+        paletteLabel: 'modbus discover',
+        label: function () {
+            if (this.name) {
+                return this.name;
+            }
+            var levels = { '1': 'Basic', '2': 'Regular', '3': 'Extended', '4': 'Individual' };
+            return 'Discover ' + (levels[this.deviceIdCode] || 'FC43');
+        },
+        oneditprepare: function () {
+            var deviceIdSelect = $('#node-input-deviceIdCode');
+            var objectIdRow = $('#modbus-discover-objectid-row');
+            var objectIdHint = $('#modbus-discover-objectid-hint');
+
+            function updateVisibility() {
+                var code = parseInt(deviceIdSelect.val(), 10);
+                if (code === 4) {
+                    objectIdRow.show();
+                    objectIdHint.text('Individual mode: specify the single object ID to read (0x00–0xFF)');
+                } else {
+                    objectIdRow.hide();
+                    objectIdHint.text('');
+                }
+            }
+
+            deviceIdSelect.on('change', updateVisibility);
+            updateVisibility();
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="modbus-discover">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Modbus Discover">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-server"><i class="fa fa-cog"></i> Server</label>
+        <input type="text" id="node-input-server">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-deviceIdCode"><i class="fa fa-id-card"></i> ID Level</label>
+        <select id="node-input-deviceIdCode">
+            <option value="1">Basic (0x01) – VendorName, ProductCode, Revision</option>
+            <option value="2">Regular (0x02) – Basic + URL, ProductName, ModelName</option>
+            <option value="3">Extended (0x03) – All objects including vendor-specific</option>
+            <option value="4">Individual (0x04) – Single object by ID</option>
+        </select>
+    </div>
+
+    <div class="form-row" id="modbus-discover-objectid-row" style="display:none">
+        <label for="node-input-objectId"><i class="fa fa-hashtag"></i> Object ID</label>
+        <input type="text" id="node-input-objectId" placeholder="0">
+    </div>
+
+    <div class="form-row">
+        <label>&nbsp;</label>
+        <span id="modbus-discover-objectid-hint" style="color: #888; font-size: 0.9em;"></span>
+    </div>
+</script>
+
+<script type="text/html" data-help-name="modbus-discover">
+    <p>Reads device identification from a Modbus device using FC 43/14
+    (MEI Transport – Read Device Identification).</p>
+
+    <h3>Configuration</h3>
+    <dl class="message-properties">
+        <dt>Server <span class="property-type">config node</span></dt>
+        <dd>The Modbus client configuration that defines the connection parameters.</dd>
+        <dt>ID Level <span class="property-type">select</span></dt>
+        <dd>
+            <table>
+                <tr><td><b>Basic (01)</b></td><td>VendorName, ProductCode, MajorMinorRevision</td></tr>
+                <tr><td><b>Regular (02)</b></td><td>Basic + VendorURL, ProductName, ModelName, UserApplicationName</td></tr>
+                <tr><td><b>Extended (03)</b></td><td>All objects including vendor-specific (0x80–0xFF)</td></tr>
+                <tr><td><b>Individual (04)</b></td><td>Single object specified by Object ID</td></tr>
+            </table>
+        </dd>
+        <dt>Object ID <span class="property-type">number</span></dt>
+        <dd>Only visible in Individual mode. Specifies which object to read (0–255).</dd>
+    </dl>
+
+    <h3>Input</h3>
+    <p>Send any message to trigger a device identification request. The following
+    <code>msg</code> properties can override node configuration:</p>
+    <dl class="message-properties">
+        <dt class="optional">deviceIdCode <span class="property-type">number</span></dt>
+        <dd>Override the ID level (1–4).</dd>
+        <dt class="optional">objectId <span class="property-type">number</span></dt>
+        <dd>Override the starting object ID (0–255).</dd>
+    </dl>
+
+    <h3>Output</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">object</span></dt>
+        <dd>Device identification result:</dd>
+    </dl>
+    <pre>{
+  "fc": 43,
+  "fcName": "readDeviceIdentification",
+  "deviceIdCode": 1,
+  "objectId": 0,
+  "deviceInfo": {
+    "VendorName": "Weidmueller",
+    "ProductCode": "UR20-FBC-MOD-TCP",
+    "MajorMinorRevision": "V1.2.0"
+  },
+  "conformityLevel": 2,
+  "unitId": 1,
+  "timestamp": "2026-04-18T10:00:00.000Z",
+  "connection": "tcp://192.168.1.100:502"
+}</pre>
+    <dl class="message-properties">
+        <dt>modbusDiscover <span class="property-type">object</span></dt>
+        <dd>Metadata: <code>deviceIdCode</code>, <code>objectId</code>,
+            <code>unitId</code>, <code>conformityLevel</code>.</dd>
+    </dl>
+
+    <h3>Device Identification Objects</h3>
+    <table>
+        <tr><td><b>0x00</b></td><td>VendorName</td><td>Basic</td></tr>
+        <tr><td><b>0x01</b></td><td>ProductCode</td><td>Basic</td></tr>
+        <tr><td><b>0x02</b></td><td>MajorMinorRevision</td><td>Basic</td></tr>
+        <tr><td><b>0x03</b></td><td>VendorURL</td><td>Regular</td></tr>
+        <tr><td><b>0x04</b></td><td>ProductName</td><td>Regular</td></tr>
+        <tr><td><b>0x05</b></td><td>ModelName</td><td>Regular</td></tr>
+        <tr><td><b>0x06</b></td><td>UserApplicationName</td><td>Regular</td></tr>
+        <tr><td><b>0x80–0xFF</b></td><td>Vendor-Specific</td><td>Extended</td></tr>
+    </table>
+
+    <h3>Status Indicators</h3>
+    <table>
+        <tr><td>🟢 green/dot</td><td>Discovery successful – shows object count</td></tr>
+        <tr><td>🔵 blue/dot</td><td>Discovery in progress</td></tr>
+        <tr><td>🔴 red/ring</td><td>Error (not connected, device does not support FC 43/14)</td></tr>
+        <tr><td>⚪ grey/dot</td><td>Ready, waiting for trigger message</td></tr>
+    </table>
+
+    <h3>References</h3>
+    <ul>
+        <li><a href="https://modbus.org/specs.php">Modbus Application Protocol V1.1b3</a> – FC 43/14 specification</li>
+    </ul>
+</script>

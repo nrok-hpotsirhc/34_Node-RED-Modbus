@@ -18,7 +18,7 @@
 | MS-6 | Server Caching & Optimization | [x] Complete | WP 3.4 | In-memory hashmap, performance |
 | MS-7 | Modbus/TCP Security | [x] Complete | WP 4.1, WP 4.2, WP 4.3 | TLS 1.3, mTLS, credential management |
 | MS-8 | Quality Assurance & Release | [~] In Progress | WP 5.1, WP 5.2, WP 5.3, WP 5.4 | Testing, docs, npm publish – leak tests, examples, README done; CHANGELOG finalize pending |
-| MS-9 | High-Priority Extended FCs | [ ] Open | WP 6.1, WP 6.2 | FC 22/23, FC 43/14 Device Identification |
+| MS-9 | High-Priority Extended FCs | [x] Complete | WP 6.1, WP 6.2 | FC 22/23, FC 43/14 Device Identification |
 | MS-10 | Serial Diagnostics & Legacy FCs | [ ] Open | WP 6.3, WP 6.4 | FC 07/08 diagnostics, FC 11/12/17/20/21/24 |
 | MS-11 | Fieldbus Architecture Extensions | [ ] Open | WP 7.1, WP 7.2, WP 7.3, WP 7.4 | Chunking, data types, exceptions, RTU-TCP |
 | MS-12 | Advanced Fieldbus Nodes | [ ] Open | WP 7.5, WP 7.6, WP 7.7, WP 7.8 | RBE, scanner, watchdog, stats |
@@ -254,12 +254,12 @@ enables automated device discovery.
 - **WP 6.2** – FC 43/14 (Read Device Identification)
 
 **Deliverables:**
-- [ ] `src/nodes/client/modbus-write.js` – FC 22 / FC 23 added
-- [ ] `src/nodes/client/modbus-write.html` – UI additions for FC 22/23
-- [ ] `test/integration/modbus-write-extended.test.js` – FC 22/23 test scenarios
-- [ ] `src/nodes/client/modbus-discover.js` – new Modbus-Discover node
-- [ ] `src/nodes/client/modbus-discover.html`
-- [ ] `test/integration/modbus-discover.test.js`
+- [x] `src/nodes/client/modbus-write.js` – FC 22 / FC 23 added
+- [x] `src/nodes/client/modbus-write.html` – UI additions for FC 22/23
+- [x] `test/integration/modbus-write-extended.test.js` – FC 22/23 test scenarios
+- [x] `src/nodes/client/modbus-discover.js` – new Modbus-Discover node
+- [x] `src/nodes/client/modbus-discover.html`
+- [x] `test/integration/modbus-discover.test.js`
 
 **Theoretical Foundations:**
 - [THEORETICAL_FOUNDATIONS.md §12.1 FC 22 – Mask Write Register](docs/THEORETICAL_FOUNDATIONS.md#121-fc-22--mask-write-register-0x16)
@@ -406,3 +406,4 @@ watchdog, and runtime metrics.
 | 2026-04-17 | MS-9 – MS-12 | Planned | Theoretical Foundations §12–§17 elaborated: extended FC PDU structures, exception responses, request chunking, extended data types (Float64/Int64/BCD/String/DateTime), RTU-over-TCP, industrial patterns (RBE, scan scheduling, watchdog, metrics). All WP and milestone theory references updated |
 | 2026-04-18 | MS-8 | In Progress | Node-RED help sidebar texts enhanced for all 6 nodes (modbus-client-config, modbus-server-config, modbus-read, modbus-write, modbus-in, modbus-out). Added status indicators, error behavior, references, default values. 536/536 tests passing |
 | 2026-04-18 | MS-8 | In Progress | 29 lifecycle/leak tests (WP 5.2), 3 example flows (WP 5.3), README Node Reference (WP 5.4), npm pack config (files array). 565/565 tests passing |
+| 2026-04-18 | MS-9 | Complete | FC 22 (Mask Write Register), FC 23 (Read/Write Multiple Registers), FC 43/14 (Read Device Identification). New modbus-discover node. Extended base-transport, payload-builder, modbus-write. 81 new tests (unit + integration). 646/646 tests passing |

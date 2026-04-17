@@ -1,15 +1,17 @@
 'use strict';
 
-const { buildWritePayload, buildConnectionString } = require('../../lib/parser/payload-builder');
+const { buildWritePayload, buildReadWritePayload, buildConnectionString } = require('../../lib/parser/payload-builder');
 
 /**
  * Modbus Write Node for Node-RED.
  *
- * Writes data to a Modbus device using one of the four write function codes:
+ * Writes data to a Modbus device using one of the supported write function codes:
  *   FC 05 – Write Single Coil
  *   FC 06 – Write Single Register
  *   FC 15 – Write Multiple Coils
  *   FC 16 – Write Multiple Registers
+ *   FC 22 – Mask Write Register
+ *   FC 23 – Read/Write Multiple Registers
  *
  * Supports:
  *   - Trigger-based write (msg.payload carries the value(s))
@@ -30,7 +32,9 @@ module.exports = function (RED) {
     5: 'writeCoil',
     6: 'writeRegister',
     15: 'writeCoils',
-    16: 'writeRegisters'
+    16: 'writeRegisters',
+    22: 'maskWriteRegister',
+    23: 'readWriteRegisters'
   };
 
   /**
@@ -41,7 +45,9 @@ module.exports = function (RED) {
     5: 'Single Coil',
     6: 'Single Register',
     15: 'Multiple Coils',
-    16: 'Multiple Registers'
+    16: 'Multiple Registers',
+    22: 'Mask Write Register',
+    23: 'Read/Write Registers'
   };
 
   function ModbusWrite(config) {
@@ -59,10 +65,17 @@ module.exports = function (RED) {
     node.queueMaxSize = parseInt(config.queueMaxSize, 10) || 100;
     node.queueDropStrategy = config.queueDropStrategy === 'lifo' ? 'lifo' : 'fifo';
 
+    // FC 23 specific: read address and quantity
+    node.readAddress = parseInt(config.readAddress, 10) || 0;
+    node.readQuantity = parseInt(config.readQuantity, 10) || 1;
+
     // Compute the effective zero-based address for the protocol
     node._protocolAddress = node.addressOffset === 'one-based'
       ? Math.max(0, node.address - 1)
       : node.address;
+    node._protocolReadAddress = node.addressOffset === 'one-based'
+      ? Math.max(0, node.readAddress - 1)
+      : node.readAddress;
 
     // Internal state
     node._writing = false;
@@ -168,6 +181,37 @@ module.exports = function (RED) {
           }
           return { value: value.map(Number), error: null };
         }
+        case 22: {
+          // FC 22: Mask Write Register – object with andMask and orMask
+          if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+            return { value: null, error: 'FC 22 requires object { andMask, orMask }' };
+          }
+          const andMask = Number(value.andMask);
+          const orMask = Number(value.orMask);
+          if (!Number.isFinite(andMask) || !Number.isInteger(andMask) || andMask < 0 || andMask > 0xFFFF) {
+            return { value: null, error: 'FC 22 andMask must be integer 0x0000-0xFFFF' };
+          }
+          if (!Number.isFinite(orMask) || !Number.isInteger(orMask) || orMask < 0 || orMask > 0xFFFF) {
+            return { value: null, error: 'FC 22 orMask must be integer 0x0000-0xFFFF' };
+          }
+          return { value: { andMask, orMask }, error: null };
+        }
+        case 23: {
+          // FC 23: Read/Write Multiple Registers – integer array (write values)
+          if (!Array.isArray(value) || value.length === 0) {
+            return { value: null, error: 'FC 23 requires a non-empty integer array (write values)' };
+          }
+          if (value.length > 121) {
+            return { value: null, error: 'FC 23 max 121 write registers per request' };
+          }
+          for (let i = 0; i < value.length; i++) {
+            const n = Number(value[i]);
+            if (!Number.isFinite(n) || !Number.isInteger(n) || n < 0 || n > 65535) {
+              return { value: null, error: `FC 23 write value at index ${i} must be integer 0-65535, got: ${value[i]}` };
+            }
+          }
+          return { value: value.map(Number), error: null };
+        }
         default:
           return { value: null, error: `Unsupported function code: ${fc}` };
       }
@@ -186,7 +230,6 @@ module.exports = function (RED) {
       }
 
       const transport = node.server._transport;
-      const method = FC_METHOD_MAP[node.fc];
 
       node._writing = true;
       node.status({ fill: 'blue', shape: 'dot', text: 'Writing...' });
@@ -195,22 +238,52 @@ module.exports = function (RED) {
         // Set unit ID from config node
         transport.setID(node.server.unitId);
 
-        // Execute the write (all FCs take address + value/values)
-        await transport[method](node._protocolAddress, entry.value);
-
         const connectionStr = buildConnectionString(node.server.getTransportConfig());
+        let outPayload;
 
-        const payload = buildWritePayload({
-          fc: node.fc,
-          address: node._protocolAddress,
-          value: entry.value,
-          unitId: node.server.unitId,
-          connection: connectionStr
-        });
+        if (node.fc === 22) {
+          // FC 22: Mask Write Register – special call signature
+          await transport.maskWriteRegister(node._protocolAddress, entry.value.andMask, entry.value.orMask);
+          outPayload = buildWritePayload({
+            fc: node.fc,
+            address: node._protocolAddress,
+            value: entry.value,
+            unitId: node.server.unitId,
+            connection: connectionStr
+          });
+        } else if (node.fc === 23) {
+          // FC 23: Read/Write Multiple Registers – combined operation
+          const result = await transport.readWriteRegisters(
+            node._protocolReadAddress, node.readQuantity,
+            node._protocolAddress, entry.value
+          );
+          outPayload = buildReadWritePayload({
+            data: result.data,
+            buffer: result.buffer,
+            fc: node.fc,
+            readAddress: node._protocolReadAddress,
+            readQuantity: node.readQuantity,
+            writeAddress: node._protocolAddress,
+            writeValues: entry.value,
+            unitId: node.server.unitId,
+            connection: connectionStr
+          });
+        } else {
+          // Standard FCs (5, 6, 15, 16)
+          const method = FC_METHOD_MAP[node.fc];
+          await transport[method](node._protocolAddress, entry.value);
+          outPayload = buildWritePayload({
+            fc: node.fc,
+            address: node._protocolAddress,
+            value: entry.value,
+            unitId: node.server.unitId,
+            connection: connectionStr
+          });
+        }
 
         const outMsg = {
           topic: entry.msg && entry.msg.topic ? entry.msg.topic : `modbus:${FC_LABEL_MAP[node.fc]}`,
-          payload: payload,
+          payload: outPayload,
           modbusWrite: {
             fc: node.fc,
             address: node.address,
@@ -220,6 +293,13 @@ module.exports = function (RED) {
             addressOffset: node.addressOffset
           }
         };
+
+        // FC 23: include read parameters in metadata
+        if (node.fc === 23) {
+          outMsg.modbusWrite.readAddress = node.readAddress;
+          outMsg.modbusWrite.protocolReadAddress = node._protocolReadAddress;
+          outMsg.modbusWrite.readQuantity = node.readQuantity;
+        }
 
         const queueLen = node._queue.length;
         node.status({

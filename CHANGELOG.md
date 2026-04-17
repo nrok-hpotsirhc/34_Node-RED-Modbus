@@ -10,6 +10,14 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **FC 22 – Mask Write Register (WP 6.1)** – Atomic AND/OR bitmask operation on a single holding register. Extended `modbus-write` node with FC 22 support including validation, transport method, and UI.
+- **FC 23 – Read/Write Multiple Registers (WP 6.1)** – Combined write + read in a single PDU. Extended `modbus-write` node with FC 23 support including `readAddress`/`readQuantity` config fields, conditional UI visibility, and `buildReadWritePayload()` in payload builder.
+- **FC 43/14 – Read Device Identification (WP 6.2)** – New `modbus-discover` node for MEI Transport. Supports Basic/Regular/Extended/Individual identification levels, dynamic overrides via `msg.deviceIdCode`/`msg.objectId`, and vendor-specific object ID mapping.
+- **Extended Transport Layer** – Added `maskWriteRegister()`, `readWriteRegisters()`, `readDeviceIdentification()`, and `_validateMask()` to `base-transport.js`. Added `MAX_FC23_WRITE_REGISTERS: 121` to `MODBUS_LIMITS`.
+- **Extended Payload Builder** – Added `buildReadWritePayload()` (FC 23) and `buildDiscoverPayload()` (FC 43/14) to `payload-builder.js`. Added FC_NAMES entries for FC 22, 23, 43.
+- **MS-9 Tests** – 81 new tests: 45 unit tests (transport validation, payload builder), 22 FC 22/23 integration tests, 14 FC 43/14 integration tests. Total: 646/646 passing.
+- **Node Registration** – Added `modbus-discover` to `package.json` `node-red.nodes` section.
+
 - **Lifecycle / Leak Tests (WP 5.2)** – 29 integration tests in `test/integration/lifecycle.test.js` validating:
   - Close-handler cleanup for all 6 node types (poll timers, queues, transports, event listeners, caches, pending requests)
   - Partial deploy scenarios (remove one node, keep others)

@@ -29,6 +29,20 @@ describe('TcpTransport', function () {
     sandbox.stub(ModbusRTU.prototype, 'writeRegister').resolves();
     sandbox.stub(ModbusRTU.prototype, 'writeCoils').resolves();
     sandbox.stub(ModbusRTU.prototype, 'writeRegisters').resolves();
+
+    // Extended FC stubs
+    // TEST-DATA: FC 22 response echoes parameters
+    sandbox.stub(ModbusRTU.prototype, 'maskWriteRegister').resolves({
+      address: 0, andMask: 0xFFFF, orMask: 0x0000
+    });
+    // TEST-DATA: FC 23 response with 3 read registers
+    sandbox.stub(ModbusRTU.prototype, 'writeFC23').resolves({
+      data: [100, 200, 300], buffer: Buffer.from([0, 100, 0, 200, 1, 44])
+    });
+    // TEST-DATA: FC 43/14 basic device identification response
+    sandbox.stub(ModbusRTU.prototype, 'readDeviceIdentification').resolves({
+      data: ['TestVendor', 'TestProduct', 'V1.0'], conformityLevel: 1
+    });
   });
 
   afterEach(function () {
@@ -379,6 +393,288 @@ describe('TcpTransport', function () {
       await transport.destroy();
       // Should not throw
       expect(transport._connected).to.be.false;
+    });
+  });
+
+  // ---- Extended function codes (FC 22, FC 23, FC 43/14) ----
+
+  describe('maskWriteRegister (FC 22)', function () {
+    let transport;
+
+    beforeEach(async function () {
+      transport = new TcpTransport();
+      await transport.connect();
+    });
+
+    it('should delegate to client.maskWriteRegister', async function () {
+      const result = await transport.maskWriteRegister(100, 0xFF00, 0x00F0);
+      expect(ModbusRTU.prototype.maskWriteRegister.calledWith(100, 0xFF00, 0x00F0)).to.be.true;
+      expect(result).to.have.property('address');
+      expect(result).to.have.property('andMask');
+      expect(result).to.have.property('orMask');
+    });
+
+    it('should reject when not connected', async function () {
+      const disconnected = new TcpTransport();
+      try {
+        await disconnected.maskWriteRegister(0, 0xFFFF, 0);
+        expect.fail('should have thrown');
+      } catch (err) {
+        expect(err.message).to.equal('TcpTransport: not connected');
+      }
+    });
+
+    it('should reject invalid address', async function () {
+      try {
+        await transport.maskWriteRegister(-1, 0xFFFF, 0);
+        expect.fail('should have thrown');
+      } catch (err) {
+        expect(err).to.be.instanceOf(RangeError);
+      }
+    });
+
+    it('should reject address above 65535', async function () {
+      try {
+        await transport.maskWriteRegister(65536, 0xFFFF, 0);
+        expect.fail('should have thrown');
+      } catch (err) {
+        expect(err).to.be.instanceOf(RangeError);
+      }
+    });
+
+    it('should reject andMask above 0xFFFF', async function () {
+      try {
+        await transport.maskWriteRegister(0, 0x10000, 0);
+        expect.fail('should have thrown');
+      } catch (err) {
+        expect(err).to.be.instanceOf(RangeError);
+        expect(err.message).to.include('AND mask');
+      }
+    });
+
+    it('should reject negative andMask', async function () {
+      try {
+        await transport.maskWriteRegister(0, -1, 0);
+        expect.fail('should have thrown');
+      } catch (err) {
+        expect(err).to.be.instanceOf(RangeError);
+      }
+    });
+
+    it('should reject orMask above 0xFFFF', async function () {
+      try {
+        await transport.maskWriteRegister(0, 0xFFFF, 0x10000);
+        expect.fail('should have thrown');
+      } catch (err) {
+        expect(err).to.be.instanceOf(RangeError);
+        expect(err.message).to.include('OR mask');
+      }
+    });
+
+    it('should reject non-integer andMask', async function () {
+      try {
+        await transport.maskWriteRegister(0, 1.5, 0);
+        expect.fail('should have thrown');
+      } catch (err) {
+        expect(err).to.be.instanceOf(RangeError);
+      }
+    });
+
+    it('should accept boundary values (0x0000 and 0xFFFF)', async function () {
+      await transport.maskWriteRegister(0, 0x0000, 0xFFFF);
+      expect(ModbusRTU.prototype.maskWriteRegister.calledWith(0, 0x0000, 0xFFFF)).to.be.true;
+    });
+  });
+
+  describe('readWriteRegisters (FC 23)', function () {
+    let transport;
+
+    beforeEach(async function () {
+      transport = new TcpTransport();
+      await transport.connect();
+    });
+
+    it('should delegate to client.writeFC23', async function () {
+      const result = await transport.readWriteRegisters(0, 3, 100, [10, 20]);
+      expect(ModbusRTU.prototype.writeFC23.calledOnce).to.be.true;
+      const args = ModbusRTU.prototype.writeFC23.firstCall.args;
+      expect(args[0]).to.equal(0); // readAddress
+      expect(args[1]).to.equal(3); // readLength
+      expect(args[2]).to.equal(100); // writeAddress
+      expect(args[3]).to.equal(2); // writeLength
+      expect(args[4]).to.deep.equal([10, 20]); // writeValues
+      expect(result.data).to.deep.equal([100, 200, 300]);
+    });
+
+    it('should reject when not connected', async function () {
+      const disconnected = new TcpTransport();
+      try {
+        await disconnected.readWriteRegisters(0, 1, 0, [1]);
+        expect.fail('should have thrown');
+      } catch (err) {
+        expect(err.message).to.equal('TcpTransport: not connected');
+      }
+    });
+
+    it('should reject invalid read address', async function () {
+      try {
+        await transport.readWriteRegisters(-1, 1, 0, [1]);
+        expect.fail('should have thrown');
+      } catch (err) {
+        expect(err).to.be.instanceOf(RangeError);
+      }
+    });
+
+    it('should reject read length > 125', async function () {
+      try {
+        await transport.readWriteRegisters(0, 126, 0, [1]);
+        expect.fail('should have thrown');
+      } catch (err) {
+        expect(err).to.be.instanceOf(RangeError);
+      }
+    });
+
+    it('should reject read length = 0', async function () {
+      try {
+        await transport.readWriteRegisters(0, 0, 0, [1]);
+        expect.fail('should have thrown');
+      } catch (err) {
+        expect(err).to.be.instanceOf(RangeError);
+      }
+    });
+
+    it('should reject invalid write address', async function () {
+      try {
+        await transport.readWriteRegisters(0, 1, 70000, [1]);
+        expect.fail('should have thrown');
+      } catch (err) {
+        expect(err).to.be.instanceOf(RangeError);
+      }
+    });
+
+    it('should reject empty write values', async function () {
+      try {
+        await transport.readWriteRegisters(0, 1, 0, []);
+        expect.fail('should have thrown');
+      } catch (err) {
+        expect(err).to.be.instanceOf(RangeError);
+        expect(err.message).to.include('FC23 registers');
+      }
+    });
+
+    it('should reject write values exceeding 121 registers', async function () {
+      try {
+        await transport.readWriteRegisters(0, 1, 0, new Array(122).fill(0));
+        expect.fail('should have thrown');
+      } catch (err) {
+        expect(err).to.be.instanceOf(RangeError);
+      }
+    });
+
+    it('should accept max 121 write registers', async function () {
+      await transport.readWriteRegisters(0, 1, 0, new Array(121).fill(0));
+      expect(ModbusRTU.prototype.writeFC23.calledOnce).to.be.true;
+    });
+
+    it('should accept max 125 read registers', async function () {
+      await transport.readWriteRegisters(0, 125, 0, [1]);
+      expect(ModbusRTU.prototype.writeFC23.calledOnce).to.be.true;
+    });
+  });
+
+  describe('readDeviceIdentification (FC 43/14)', function () {
+    let transport;
+
+    beforeEach(async function () {
+      transport = new TcpTransport();
+      await transport.connect();
+    });
+
+    it('should delegate to client.readDeviceIdentification', async function () {
+      const result = await transport.readDeviceIdentification(1, 0);
+      expect(ModbusRTU.prototype.readDeviceIdentification.calledWith(1, 0)).to.be.true;
+      expect(result.data).to.deep.equal(['TestVendor', 'TestProduct', 'V1.0']);
+      expect(result.conformityLevel).to.equal(1);
+    });
+
+    it('should reject when not connected', async function () {
+      const disconnected = new TcpTransport();
+      try {
+        await disconnected.readDeviceIdentification(1, 0);
+        expect.fail('should have thrown');
+      } catch (err) {
+        expect(err.message).to.equal('TcpTransport: not connected');
+      }
+    });
+
+    it('should reject invalid deviceIdCode (0)', async function () {
+      try {
+        await transport.readDeviceIdentification(0, 0);
+        expect.fail('should have thrown');
+      } catch (err) {
+        expect(err).to.be.instanceOf(RangeError);
+        expect(err.message).to.include('Device ID code');
+      }
+    });
+
+    it('should reject invalid deviceIdCode (5)', async function () {
+      try {
+        await transport.readDeviceIdentification(5, 0);
+        expect.fail('should have thrown');
+      } catch (err) {
+        expect(err).to.be.instanceOf(RangeError);
+      }
+    });
+
+    it('should reject non-integer deviceIdCode', async function () {
+      try {
+        await transport.readDeviceIdentification(1.5, 0);
+        expect.fail('should have thrown');
+      } catch (err) {
+        expect(err).to.be.instanceOf(RangeError);
+      }
+    });
+
+    it('should reject negative objectId', async function () {
+      try {
+        await transport.readDeviceIdentification(1, -1);
+        expect.fail('should have thrown');
+      } catch (err) {
+        expect(err).to.be.instanceOf(RangeError);
+        expect(err.message).to.include('Object ID');
+      }
+    });
+
+    it('should reject objectId > 255', async function () {
+      try {
+        await transport.readDeviceIdentification(1, 256);
+        expect.fail('should have thrown');
+      } catch (err) {
+        expect(err).to.be.instanceOf(RangeError);
+      }
+    });
+
+    it('should default objectId to 0 when undefined', async function () {
+      await transport.readDeviceIdentification(1);
+      expect(ModbusRTU.prototype.readDeviceIdentification.calledWith(1, 0)).to.be.true;
+    });
+
+    it('should default objectId to 0 when null', async function () {
+      await transport.readDeviceIdentification(1, null);
+      expect(ModbusRTU.prototype.readDeviceIdentification.calledWith(1, 0)).to.be.true;
+    });
+
+    it('should accept all valid deviceIdCodes (1-4)', async function () {
+      for (let code = 1; code <= 4; code++) {
+        await transport.readDeviceIdentification(code, 0);
+      }
+      expect(ModbusRTU.prototype.readDeviceIdentification.callCount).to.equal(4);
+    });
+
+    it('should accept boundary objectId (0 and 255)', async function () {
+      await transport.readDeviceIdentification(1, 0);
+      await transport.readDeviceIdentification(1, 255);
+      expect(ModbusRTU.prototype.readDeviceIdentification.callCount).to.equal(2);
     });
   });
 });

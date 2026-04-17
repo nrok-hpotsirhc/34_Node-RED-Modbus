@@ -19,7 +19,8 @@ const MODBUS_LIMITS = {
   MAX_READ_REGISTERS: 125,
   MAX_READ_COILS: 2000,
   MAX_WRITE_REGISTERS: 123,
-  MAX_WRITE_COILS: 1968
+  MAX_WRITE_COILS: 1968,
+  MAX_FC23_WRITE_REGISTERS: 121
 };
 
 /**
@@ -193,6 +194,60 @@ class BaseTransport extends EventEmitter {
     return this._client.writeRegisters(address, values);
   }
 
+  // -- Extended function codes --
+
+  /**
+   * Mask write a holding register (FC 22).
+   * Atomic operation: result = (current AND andMask) OR (orMask AND NOT andMask)
+   * @param {number} address - Register address (0-65535).
+   * @param {number} andMask - AND bitmask (0x0000-0xFFFF).
+   * @param {number} orMask - OR bitmask (0x0000-0xFFFF).
+   * @returns {Promise<{address: number, andMask: number, orMask: number}>}
+   */
+  async maskWriteRegister(address, andMask, orMask) {
+    this._assertConnected();
+    this._validateAddress(address);
+    this._validateMask(andMask, 'AND mask');
+    this._validateMask(orMask, 'OR mask');
+    return this._client.maskWriteRegister(address, andMask, orMask);
+  }
+
+  /**
+   * Read/write multiple registers in a single transaction (FC 23).
+   * Write is executed first, then read is performed.
+   * @param {number} readAddress - Starting read register address (0-65535).
+   * @param {number} readLength - Number of registers to read (1-125).
+   * @param {number} writeAddress - Starting write register address (0-65535).
+   * @param {number[]} writeValues - Register values to write (max 121).
+   * @returns {Promise<{data: number[], buffer: Buffer}>}
+   */
+  async readWriteRegisters(readAddress, readLength, writeAddress, writeValues) {
+    this._assertConnected();
+    this._validateReadParams(readAddress, readLength, MODBUS_LIMITS.MAX_READ_REGISTERS);
+    this._validateAddress(writeAddress);
+    this._validateWriteArray(writeValues, MODBUS_LIMITS.MAX_FC23_WRITE_REGISTERS, 'FC23 registers');
+    return this._client.writeFC23(readAddress, readLength, writeAddress, writeValues.length, writeValues);
+  }
+
+  /**
+   * Read device identification (FC 43/14 - MEI Transport).
+   * @param {number} deviceIdCode - Read device ID code (1-4).
+   * @param {number} [objectId=0] - Starting object ID.
+   * @returns {Promise<{data: string[], conformityLevel: number}>}
+   */
+  async readDeviceIdentification(deviceIdCode, objectId) {
+    this._assertConnected();
+    if (typeof deviceIdCode !== 'number' || !Number.isInteger(deviceIdCode) ||
+        deviceIdCode < 1 || deviceIdCode > 4) {
+      throw new RangeError('Device ID code must be 1-4, got: ' + deviceIdCode);
+    }
+    const oid = (objectId !== undefined && objectId !== null) ? objectId : 0;
+    if (typeof oid !== 'number' || !Number.isInteger(oid) || oid < 0 || oid > 255) {
+      throw new RangeError('Object ID must be 0-255, got: ' + oid);
+    }
+    return this._client.readDeviceIdentification(deviceIdCode, oid);
+  }
+
   /**
    * Disconnect from the Modbus device.
    * Properly awaits the close callback before resolving.
@@ -307,6 +362,21 @@ class BaseTransport extends EventEmitter {
     if (!Array.isArray(values) || values.length === 0 || values.length > maxLength) {
       throw new RangeError(
         `Write ${label} count must be 1-${maxLength}, got: ${Array.isArray(values) ? values.length : 'non-array'}`
+      );
+    }
+  }
+
+  /**
+   * Validate a 16-bit bitmask value for FC 22 operations.
+   * @param {number} value
+   * @param {string} label - Description for error messages (e.g. 'AND mask').
+   * @throws {RangeError}
+   * @private
+   */
+  _validateMask(value, label) {
+    if (typeof value !== 'number' || !Number.isInteger(value) || value < 0 || value > 0xFFFF) {
+      throw new RangeError(
+        `${label} must be an integer between 0x0000 and 0xFFFF, got: ${value}`
       );
     }
   }

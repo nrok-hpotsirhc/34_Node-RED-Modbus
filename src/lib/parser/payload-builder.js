@@ -22,7 +22,10 @@ const FC_NAMES = Object.freeze({
   5: 'writeSingleCoil',
   6: 'writeSingleRegister',
   15: 'writeMultipleCoils',
-  16: 'writeMultipleRegisters'
+  16: 'writeMultipleRegisters',
+  22: 'maskWriteRegister',
+  23: 'readWriteMultipleRegisters',
+  43: 'readDeviceIdentification'
 });
 
 /**
@@ -107,6 +110,68 @@ function buildConnectionString(config) {
 }
 
 /**
+ * Build a standardized payload from a Modbus FC 23 read/write response.
+ *
+ * @param {object} options - Payload options.
+ * @param {number[]} options.data - Read response data (register values).
+ * @param {Buffer} [options.buffer] - Raw response buffer.
+ * @param {number} options.fc - Function code (23).
+ * @param {number} options.readAddress - Starting read address (zero-based).
+ * @param {number} options.readQuantity - Number of registers read.
+ * @param {number} options.writeAddress - Starting write address (zero-based).
+ * @param {number[]} options.writeValues - Values written.
+ * @param {number} options.unitId - Modbus unit/slave ID.
+ * @param {string} [options.connection] - Connection identifier string.
+ * @returns {object} Standardized payload object.
+ */
+function buildReadWritePayload(options) {
+  _validateOptions(options, ['data', 'fc', 'readAddress', 'readQuantity', 'writeAddress', 'writeValues', 'unitId']);
+
+  return {
+    data: options.data,
+    buffer: options.buffer || null,
+    fc: options.fc,
+    fcName: FC_NAMES[options.fc] || `fc${options.fc}`,
+    readAddress: options.readAddress,
+    readQuantity: options.readQuantity,
+    writeAddress: options.writeAddress,
+    writeQuantity: options.writeValues.length,
+    writeValues: options.writeValues,
+    unitId: options.unitId,
+    timestamp: new Date().toISOString(),
+    connection: options.connection || null
+  };
+}
+
+/**
+ * Build a standardized payload from a Modbus FC 43/14 device identification response.
+ *
+ * @param {object} options - Payload options.
+ * @param {number} options.deviceIdCode - Read device ID code used (1-4).
+ * @param {number} options.objectId - Starting object ID.
+ * @param {object} options.deviceInfo - Parsed device information map.
+ * @param {number} [options.conformityLevel] - Device conformity level.
+ * @param {number} options.unitId - Modbus unit/slave ID.
+ * @param {string} [options.connection] - Connection identifier string.
+ * @returns {object} Standardized payload object.
+ */
+function buildDiscoverPayload(options) {
+  _validateOptions(options, ['deviceIdCode', 'objectId', 'unitId']);
+
+  return {
+    fc: 43,
+    fcName: FC_NAMES[43] || 'readDeviceIdentification',
+    deviceIdCode: options.deviceIdCode,
+    objectId: options.objectId,
+    deviceInfo: options.deviceInfo || {},
+    conformityLevel: options.conformityLevel || 0,
+    unitId: options.unitId,
+    timestamp: new Date().toISOString(),
+    connection: options.connection || null
+  };
+}
+
+/**
  * Validate that all required fields are present in an options object.
  * @param {object} options
  * @param {string[]} requiredFields
@@ -128,5 +193,7 @@ module.exports = {
   FC_NAMES,
   buildReadPayload,
   buildWritePayload,
+  buildReadWritePayload,
+  buildDiscoverPayload,
   buildConnectionString
 };

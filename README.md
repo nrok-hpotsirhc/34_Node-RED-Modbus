@@ -12,7 +12,7 @@
 
 ## Development Progress
 
-> **Current State (2026-04-18):** MS-7 complete – TLS 1.3, mTLS, X.509v3 security layer fully implemented and tested. 565/565 tests passing. MS-8 (QA & Release) in progress – help sidebar texts, leak tests, example flows completed. Theoretical foundations for MS-9–MS-12 (extended FCs, fieldbus extensions) elaborated.
+> **Current State (2026-04-18):** MS-9 complete – FC 22 (Mask Write), FC 23 (Read/Write Multiple), FC 43/14 (Device Identification) fully implemented and tested. 646/646 tests passing. MS-8 (QA & Release) in progress – CHANGELOG finalize pending. New modbus-discover node for device identification.
 
 | # | Milestone | Status | Progress |
 |---|-----------|--------|----------|
@@ -24,12 +24,12 @@
 | MS-6 | Server Caching & Optimization | ✅ Complete | `██████████` 100 % |
 | MS-7 | Modbus/TCP Security | ✅ Complete | `██████████` 100 % |
 | MS-8 | Quality Assurance & Release | 🔄 In Progress | `████████░░` 80 % |
-| MS-9 | High-Priority Extended FCs | 🔲 Open | `░░░░░░░░░░` 0 % |
+| MS-9 | High-Priority Extended FCs | ✅ Complete | `██████████` 100 % |
 | MS-10 | Serial Diagnostics & Legacy FCs | 🔲 Open | `░░░░░░░░░░` 0 % |
 | MS-11 | Fieldbus Architecture Extensions | 🔲 Open | `░░░░░░░░░░` 0 % |
 | MS-12 | Advanced Fieldbus Nodes | 🔲 Open | `░░░░░░░░░░` 0 % |
 
-**Overall Progress: 7 / 12 milestones completed – 565 / 565 tests passing**
+**Overall Progress: 8 / 12 milestones completed – 646 / 646 tests passing**
 
 > Milestone details: [MILESTONES.md](MILESTONES.md) · Work packages: [docs/WORK_PACKAGES.md](docs/WORK_PACKAGES.md)
 
@@ -162,14 +162,26 @@ Writes values to coils or holding registers on a Modbus device. Includes a backp
 
 | Property | Default | Description |
 |----------|---------|-------------|
-| Function Code | `6` | `5`=Single Coil, `6`=Single Reg, `15`=Multi Coil, `16`=Multi Reg |
+| Function Code | `6` | `5`=Single Coil, `6`=Single Reg, `15`=Multi Coil, `16`=Multi Reg, `22`=Mask Write, `23`=Read/Write |
 | Address | `0` | Target address |
 | Address Offset | `zero-based` | `zero-based` or `one-based` |
 | Max Queue Size | `100` | Maximum queued write requests |
 | Drop Strategy | `fifo` | `fifo` (drop oldest) or `lifo` (drop newest) when queue is full |
 
-**Input:** `msg.payload` = value (`number` for FC 5/6, `array` for FC 15/16).
+**Input:** `msg.payload` = value (`number` for FC 5/6, `array` for FC 15/16, `{ andMask, orMask }` for FC 22, `array` for FC 23).
 **Output:** Write confirmation with address and value.
+
+### Modbus Discover
+
+Reads device identification from a Modbus device using FC 43/14 (MEI Transport).
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| Device ID Level | `1` | `1`=Basic, `2`=Regular, `3`=Extended, `4`=Individual |
+| Object ID | `0` | Object ID for Individual mode (0x00–0xFF) |
+
+**Input:** Any `msg` triggers a discovery request. Override with `msg.deviceIdCode` / `msg.objectId`.
+**Output:** `msg.payload` contains `{ conformityLevel, deviceInfo, objects, raw }`.
 
 ### Modbus Server Config
 
@@ -217,9 +229,9 @@ Sends a response back to the Modbus client that sent the original request.
 | 06 | Write Single Register | 16-Bit (W) | ✅ |
 | 15 | Write Multiple Coils | Bit[] (W) | ✅ |
 | 16 | Write Multiple Registers | 16-Bit[] (W) | ✅ |
-| 22 | Mask Write Register | 16-Bit (W) | 🔲 MS-9 |
-| 23 | Read/Write Multiple Registers | 16-Bit (R/W) | 🔲 MS-9 |
-| 43/14 | Read Device Identification | String (R) | 🔲 MS-9 |
+| 22 | Mask Write Register | 16-Bit (W) | ✅ |
+| 23 | Read/Write Multiple Registers | 16-Bit (R/W) | ✅ |
+| 43/14 | Read Device Identification | String (R) | ✅ |
 | 07 | Read Exception Status | Byte (R) | 🔲 MS-10 |
 | 08 | Diagnostics | Various | 🔲 MS-10 |
 | 11/12/17 | Serial Diagnostics | Various | 🔲 MS-10 |

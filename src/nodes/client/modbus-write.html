@@ -8,6 +8,8 @@
             fc: { value: '6' },
             address: { value: 0, validate: RED.validators.number() },
             addressOffset: { value: 'zero-based' },
+            readAddress: { value: 0, validate: RED.validators.number() },
+            readQuantity: { value: 1, validate: RED.validators.number() },
             queueMaxSize: { value: 100, validate: RED.validators.number() },
             queueDropStrategy: { value: 'fifo' }
         },
@@ -23,7 +25,9 @@
                 '5': 'FC5 Coil',
                 '6': 'FC6 Reg',
                 '15': 'FC15 Coils',
-                '16': 'FC16 Regs'
+                '16': 'FC16 Regs',
+                '22': 'FC22 Mask',
+                '23': 'FC23 R/W'
             };
             var fc = fcLabels[this.fc] || 'FC' + this.fc;
             return fc + ' @' + (this.address || 0);
@@ -34,6 +38,16 @@
             var addressOffsetSelect = $('#node-input-addressOffset');
             var addressHint = $('#modbus-write-address-hint');
             var valueHint = $('#modbus-write-value-hint');
+            var fc23Rows = $('.modbus-write-fc23-row');
+
+            function updateVisibility() {
+                var fc = parseInt(fcSelect.val(), 10);
+                if (fc === 23) {
+                    fc23Rows.show();
+                } else {
+                    fc23Rows.hide();
+                }
+            }
 
             function updateAddressHint() {
                 var fc = parseInt(fcSelect.val(), 10);
@@ -42,13 +56,14 @@
 
                 var protocolAddr = (offset === 'one-based') ? Math.max(0, addr - 1) : addr;
 
-                var prefixes = { 5: '0', 6: '4', 15: '0', 16: '4' };
+                var prefixes = { 5: '0', 6: '4', 15: '0', 16: '4', 22: '4', 23: '4' };
                 var prefix = prefixes[fc] || '';
+                var addrLabel = (fc === 23) ? 'Write address' : 'Address';
 
                 if (offset === 'one-based') {
-                    addressHint.text('Datasheet: ' + prefix + String(addr).padStart(4, '0') + ' → Protocol: ' + protocolAddr);
+                    addressHint.text(addrLabel + ': ' + prefix + String(addr).padStart(4, '0') + ' → Protocol: ' + protocolAddr);
                 } else {
-                    addressHint.text('Protocol address: ' + protocolAddr);
+                    addressHint.text(addrLabel + ' (protocol): ' + protocolAddr);
                 }
             }
 
@@ -58,17 +73,21 @@
                     5: 'msg.payload: boolean, 0/1, or 0xFF00/0x0000',
                     6: 'msg.payload: integer (0–65535)',
                     15: 'msg.payload: boolean array, e.g. [true, false, true]',
-                    16: 'msg.payload: integer array, e.g. [100, 200, 300]'
+                    16: 'msg.payload: integer array, e.g. [100, 200, 300]',
+                    22: 'msg.payload: { andMask: 0xFFFF, orMask: 0x0000 }',
+                    23: 'msg.payload: integer array (write values), e.g. [100, 200]'
                 };
                 valueHint.text(hints[fc] || 'msg.payload: value(s) to write');
             }
 
             fcSelect.on('change', function () {
+                updateVisibility();
                 updateAddressHint();
                 updateValueHint();
             });
             addressInput.on('change keyup', updateAddressHint);
             addressOffsetSelect.on('change', updateAddressHint);
+            updateVisibility();
             updateAddressHint();
             updateValueHint();
         }
@@ -93,12 +112,24 @@
             <option value="6">FC 06 – Write Single Register</option>
             <option value="15">FC 15 – Write Multiple Coils</option>
             <option value="16">FC 16 – Write Multiple Registers</option>
+            <option value="22">FC 22 – Mask Write Register</option>
+            <option value="23">FC 23 – Read/Write Multiple Registers</option>
         </select>
     </div>
 
     <div class="form-row">
         <label for="node-input-address"><i class="fa fa-map-marker"></i> Start Address</label>
         <input type="text" id="node-input-address" placeholder="0">
+    </div>
+
+    <div class="form-row modbus-write-fc23-row" style="display:none">
+        <label for="node-input-readAddress"><i class="fa fa-map-marker"></i> Read Address</label>
+        <input type="text" id="node-input-readAddress" placeholder="0">
+    </div>
+
+    <div class="form-row modbus-write-fc23-row" style="display:none">
+        <label for="node-input-readQuantity"><i class="fa fa-sort-numeric-asc"></i> Read Quantity</label>
+        <input type="text" id="node-input-readQuantity" placeholder="1">
     </div>
 
     <div class="form-row">
@@ -134,7 +165,7 @@
 </script>
 
 <script type="text/html" data-help-name="modbus-write">
-    <p>Writes data to a Modbus device using function codes FC 05, 06, 15, or 16.</p>
+    <p>Writes data to a Modbus device using function codes FC 05, 06, 15, 16, 22, or 23.</p>
 
     <h3>Configuration</h3>
     <dl class="message-properties">
@@ -147,6 +178,8 @@
                 <tr><td><b>FC 06</b></td><td>Write Single Register (16-bit value, 0–65535)</td></tr>
                 <tr><td><b>FC 15</b></td><td>Write Multiple Coils (boolean array, max 1968)</td></tr>
                 <tr><td><b>FC 16</b></td><td>Write Multiple Registers (16-bit array, max 123)</td></tr>
+                <tr><td><b>FC 22</b></td><td>Mask Write Register (atomic AND/OR bitmask on a holding register)</td></tr>
+                <tr><td><b>FC 23</b></td><td>Read/Write Multiple Registers (combined write + read in one PDU)</td></tr>
             </table>
         </dd>
         <dt>Start Address <span class="property-type">number</span></dt>
@@ -176,6 +209,12 @@
         <dd>Array of boolean values, e.g. <code>[true, false, true]</code>. Max length: 1968.</dd>
         <dt>FC 16 – Multiple Registers <span class="property-type">number[]</span></dt>
         <dd>Array of integer values (0–65535 each), e.g. <code>[100, 200, 300]</code>. Max length: 123.</dd>
+        <dt>FC 22 – Mask Write Register <span class="property-type">object</span></dt>
+        <dd>Object with <code>andMask</code> and <code>orMask</code> (0x0000–0xFFFF each), e.g. <code>{ andMask: 0xFFFF, orMask: 0x0010 }</code>.
+            Formula: <code>result = (current AND andMask) OR (orMask AND NOT andMask)</code></dd>
+        <dt>FC 23 – Read/Write Registers <span class="property-type">number[]</span></dt>
+        <dd>Array of integer values to write (0–65535 each), e.g. <code>[100, 200]</code>. Max length: 121.
+            Read address and quantity are configured in the node editor.</dd>
     </dl>
 
     <h3>Output</h3>
@@ -230,6 +269,6 @@
 
     <h3>References</h3>
     <ul>
-        <li><a href="https://modbus.org/specs.php">Modbus Application Protocol V1.1b3</a> – FC 05, 06, 15, 16 specification</li>
+        <li><a href="https://modbus.org/specs.php">Modbus Application Protocol V1.1b3</a> – FC 05, 06, 15, 16, 22, 23 specification</li>
     </ul>
 </script>

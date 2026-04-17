@@ -167,7 +167,7 @@ The implementation follows the **Work Breakdown Structure** from [docs/WORK_PACK
 | MS-6 | Server Caching & Optimization | WP 3.4 | [x] Complete |
 | MS-7 | Modbus/TCP Security | WP 4.1, WP 4.2, WP 4.3 | [x] Complete |
 | MS-8 | QA, Documentation & Release | WP 5.1, WP 5.2, WP 5.3, WP 5.4 | [~] In Progress |
-| MS-9 | High-Priority Extended FCs | WP 6.1, WP 6.2 | [ ] Open |
+| MS-9 | High-Priority Extended FCs | WP 6.1, WP 6.2 | [x] Complete |
 | MS-10 | Serial Diagnostics & Legacy FCs | WP 6.3, WP 6.4 | [ ] Open |
 | MS-11 | Fieldbus Architecture Extensions | WP 7.1, WP 7.2, WP 7.3, WP 7.4 | [ ] Open |
 | MS-12 | Advanced Fieldbus Nodes | WP 7.5, WP 7.6, WP 7.7, WP 7.8 | [ ] Open |
@@ -204,12 +204,20 @@ The complete document is at [docs/THEORETICAL_FOUNDATIONS.md](docs/THEORETICAL_F
 | Field | Value |
 |-------|-------|
 | Last updated | 2026-04-18 |
-| Test suite | 565 / 565 passing |
+| Test suite | 646 / 646 passing |
 | Active milestone | MS-8 – Quality Assurance & Release |
 | Next open deliverable | CHANGELOG.md finalize [Unreleased] → [0.1.0] |
 | Open items | CHANGELOG finalize before publish |
-| Known issues | None – all bugs from Code Review #5 resolved |
-| Planned (MS-9–12) | 8 new WPs, 13 missing FCs, 4 fieldbus extensions – theoretical foundations (§12–§17) complete |
+| Known issues | None |
+| Planned (MS-10–12) | 6 WPs, 10 missing FCs, 4 fieldbus extensions – theoretical foundations (§12–§17) complete |
+
+### MS-9 Deliverable Checklist (Complete)
+- [x] FC 22 (Mask Write Register) – atomic AND/OR bitmask in modbus-write node
+- [x] FC 23 (Read/Write Multiple Registers) – combined write+read in modbus-write node
+- [x] FC 43/14 (Read Device Identification) – new modbus-discover node
+- [x] Extended base-transport (3 new methods), payload-builder (2 new builders)
+- [x] 81 new tests (unit + integration), 646/646 total passing
+- [x] Node registered in package.json (7 nodes total)
 
 ### MS-8 Deliverable Checklist
 - [x] 565/565 tests passing, all security certificate fixtures generated

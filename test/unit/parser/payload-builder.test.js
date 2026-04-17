@@ -6,6 +6,8 @@ const {
   FC_NAMES,
   buildReadPayload,
   buildWritePayload,
+  buildReadWritePayload,
+  buildDiscoverPayload,
   buildConnectionString
 } = require('../../../src/lib/parser/payload-builder');
 
@@ -35,6 +37,12 @@ describe('PayloadBuilder', function () {
       expect(FC_NAMES[6]).to.equal('writeSingleRegister');
       expect(FC_NAMES[15]).to.equal('writeMultipleCoils');
       expect(FC_NAMES[16]).to.equal('writeMultipleRegisters');
+    });
+
+    it('should map extended function codes', function () {
+      expect(FC_NAMES[22]).to.equal('maskWriteRegister');
+      expect(FC_NAMES[23]).to.equal('readWriteMultipleRegisters');
+      expect(FC_NAMES[43]).to.equal('readDeviceIdentification');
     });
 
     it('should be frozen', function () {
@@ -279,6 +287,147 @@ describe('PayloadBuilder', function () {
     it('should use defaults for missing RTU fields', function () {
       const result = buildConnectionString({ type: 'rtu' });
       expect(result).to.equal('rtu://unknown@9600');
+    });
+  });
+
+  // ---- buildReadWritePayload (FC 23) ----
+
+  describe('buildReadWritePayload()', function () {
+    let clock;
+
+    beforeEach(function () {
+      clock = sinon.useFakeTimers(new Date('2026-04-18T10:00:00.000Z'));
+    });
+
+    afterEach(function () {
+      clock.restore();
+    });
+
+    it('should build a valid FC 23 payload', function () {
+      // TEST-DATA: FC 23 read/write payload
+      const result = buildReadWritePayload({
+        data: [500, 600],
+        buffer: Buffer.from([0x01, 0xF4, 0x02, 0x58]),
+        fc: 23,
+        readAddress: 100,
+        readQuantity: 2,
+        writeAddress: 200,
+        writeValues: [10, 20, 30],
+        unitId: 1,
+        connection: 'tcp://192.168.1.100:502'
+      });
+
+      expect(result.fc).to.equal(23);
+      expect(result.fcName).to.equal('readWriteMultipleRegisters');
+      expect(result.data).to.deep.equal([500, 600]);
+      expect(result.buffer).to.be.instanceOf(Buffer);
+      expect(result.readAddress).to.equal(100);
+      expect(result.readQuantity).to.equal(2);
+      expect(result.writeAddress).to.equal(200);
+      expect(result.writeQuantity).to.equal(3);
+      expect(result.writeValues).to.deep.equal([10, 20, 30]);
+      expect(result.unitId).to.equal(1);
+      expect(result.timestamp).to.equal('2026-04-18T10:00:00.000Z');
+      expect(result.connection).to.equal('tcp://192.168.1.100:502');
+    });
+
+    it('should default buffer to null when omitted', function () {
+      const result = buildReadWritePayload({
+        data: [1], fc: 23, readAddress: 0, readQuantity: 1,
+        writeAddress: 0, writeValues: [1], unitId: 1
+      });
+      expect(result.buffer).to.be.null;
+    });
+
+    it('should default connection to null when omitted', function () {
+      const result = buildReadWritePayload({
+        data: [1], fc: 23, readAddress: 0, readQuantity: 1,
+        writeAddress: 0, writeValues: [1], unitId: 1
+      });
+      expect(result.connection).to.be.null;
+    });
+
+    it('should throw on missing required fields', function () {
+      expect(() => buildReadWritePayload({
+        fc: 23, readAddress: 0, readQuantity: 1,
+        writeAddress: 0, writeValues: [1], unitId: 1
+      })).to.throw(TypeError, /data/);
+
+      expect(() => buildReadWritePayload({
+        data: [1], fc: 23, readQuantity: 1,
+        writeAddress: 0, writeValues: [1], unitId: 1
+      })).to.throw(TypeError, /readAddress/);
+    });
+  });
+
+  // ---- buildDiscoverPayload (FC 43/14) ----
+
+  describe('buildDiscoverPayload()', function () {
+    let clock;
+
+    beforeEach(function () {
+      clock = sinon.useFakeTimers(new Date('2026-04-18T10:00:00.000Z'));
+    });
+
+    afterEach(function () {
+      clock.restore();
+    });
+
+    it('should build a valid FC 43/14 payload', function () {
+      // TEST-DATA: Basic device identification payload
+      const result = buildDiscoverPayload({
+        deviceIdCode: 1,
+        objectId: 0,
+        deviceInfo: {
+          VendorName: 'Weidmueller',
+          ProductCode: 'UR20-FBC-MOD-TCP',
+          MajorMinorRevision: 'V1.2.0'
+        },
+        conformityLevel: 2,
+        unitId: 1,
+        connection: 'tcp://192.168.1.100:502'
+      });
+
+      expect(result.fc).to.equal(43);
+      expect(result.fcName).to.equal('readDeviceIdentification');
+      expect(result.deviceIdCode).to.equal(1);
+      expect(result.objectId).to.equal(0);
+      expect(result.deviceInfo.VendorName).to.equal('Weidmueller');
+      expect(result.conformityLevel).to.equal(2);
+      expect(result.unitId).to.equal(1);
+      expect(result.timestamp).to.equal('2026-04-18T10:00:00.000Z');
+      expect(result.connection).to.equal('tcp://192.168.1.100:502');
+    });
+
+    it('should default deviceInfo to empty object', function () {
+      const result = buildDiscoverPayload({
+        deviceIdCode: 1, objectId: 0, unitId: 1
+      });
+      expect(result.deviceInfo).to.deep.equal({});
+    });
+
+    it('should default conformityLevel to 0', function () {
+      const result = buildDiscoverPayload({
+        deviceIdCode: 1, objectId: 0, unitId: 1
+      });
+      expect(result.conformityLevel).to.equal(0);
+    });
+
+    it('should default connection to null', function () {
+      const result = buildDiscoverPayload({
+        deviceIdCode: 1, objectId: 0, unitId: 1
+      });
+      expect(result.connection).to.be.null;
+    });
+
+    it('should throw on missing required fields', function () {
+      expect(() => buildDiscoverPayload({
+        objectId: 0, unitId: 1
+      })).to.throw(TypeError, /deviceIdCode/);
+
+      expect(() => buildDiscoverPayload({
+        deviceIdCode: 1, unitId: 1
+      })).to.throw(TypeError, /objectId/);
     });
   });
 });
