@@ -1,6 +1,7 @@
 'use strict';
 
 const TransportFactory = require('../../lib/transport/transport-factory');
+const { CertificateValidator } = require('../../lib/security/certificate-validator');
 
 /**
  * Parse a string to an integer, returning the default value
@@ -19,8 +20,11 @@ function parseIntSafe(value, defaultValue) {
  * Modbus Client Config node for Node-RED.
  *
  * This is a config node that stores TCP or RTU connection parameters
- * and provides a transport configuration to child nodes. In MS-1 it
- * does NOT establish connections (that is handled in MS-2 via XState).
+ * and provides a transport configuration to child nodes.
+ *
+ * Supports Modbus/TCP Security (TLS 1.2/1.3, mTLS) via WP 4.1–4.3.
+ * Certificate paths are stored in the Node-RED Credential Store,
+ * never in flow.json.
  *
  * @param {object} RED - Node-RED runtime API.
  */
@@ -48,8 +52,34 @@ module.exports = function (RED) {
     node.unitId = parseIntSafe(config.unitId, 1);
     node.timeout = parseIntSafe(config.timeout, 1000);
 
+    // TLS parameters (WP 4.1–4.3: Modbus/TCP Security)
+    node.tlsEnabled = config.tlsEnabled === true || config.tlsEnabled === 'true';
+    node.rejectUnauthorized = config.rejectUnauthorized !== false && config.rejectUnauthorized !== 'false';
+
     // Transport instance placeholder (created on demand in MS-2)
     node._transport = null;
+
+    // Validate TLS credentials on startup if TLS is enabled
+    if (node.tlsEnabled && node.connectionType === 'tcp') {
+      const validator = new CertificateValidator();
+      const creds = node.credentials || {};
+      const result = validator.validateConfig({
+        caPath: creds.caPath || null,
+        certPath: creds.certPath || null,
+        keyPath: creds.keyPath || null,
+        passphrase: creds.passphrase || null,
+        rejectUnauthorized: node.rejectUnauthorized
+      });
+
+      for (const warning of result.warnings) {
+        node.warn(`TLS: ${warning}`);
+      }
+      if (!result.valid) {
+        for (const error of result.errors) {
+          node.error(`TLS: ${error}`);
+        }
+      }
+    }
 
     /**
      * Build a transport configuration object from the stored node properties.
@@ -70,13 +100,26 @@ module.exports = function (RED) {
         };
       }
 
-      return {
+      const tcpConfig = {
         type: 'tcp',
         host: node.host,
         port: node.port,
         unitId: node.unitId,
         timeout: node.timeout
       };
+
+      // Add TLS configuration when enabled
+      if (node.tlsEnabled) {
+        const creds = node.credentials || {};
+        tcpConfig.tls = true;
+        tcpConfig.caPath = creds.caPath || undefined;
+        tcpConfig.certPath = creds.certPath || undefined;
+        tcpConfig.keyPath = creds.keyPath || undefined;
+        tcpConfig.passphrase = creds.passphrase || undefined;
+        tcpConfig.rejectUnauthorized = node.rejectUnauthorized;
+      }
+
+      return tcpConfig;
     };
 
     /**
@@ -101,7 +144,7 @@ module.exports = function (RED) {
     node.log(
       `Modbus client config initialized: ${node.connectionType}` +
         (node.connectionType === 'tcp'
-          ? ` ${node.host}:${node.port}`
+          ? ` ${node.host}:${node.port}${node.tlsEnabled ? ' (TLS)' : ''}`
           : ` ${node.serialPort}@${node.baudRate}`) +
         ` unit=${node.unitId}`
     );
@@ -122,9 +165,10 @@ module.exports = function (RED) {
   RED.nodes.registerType('modbus-client-config', ModbusClientConfig, {
     credentials: {
       password: { type: 'password' },
+      caPath: { type: 'text' },
       certPath: { type: 'text' },
       keyPath: { type: 'password' },
-      caPath: { type: 'text' }
+      passphrase: { type: 'password' }
     }
   });
 };
