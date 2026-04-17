@@ -1,0 +1,78 @@
+Perform a comprehensive software review of this Node-RED Modbus package (node-red-contrib-modbus-pro).
+Review the ENTIRE codebase: all files under src/, test/, and root config files.
+Act as a senior software engineer with expertise in Node.js, industrial protocols, and Node-RED node development.
+
+## Instructions
+
+Read agents.md first – it is the authoritative project guide with coding standards (§4.2), security rules (§4.3), mock/test data policy (§5), and the current project status (§9). All code changes MUST comply with these rules.
+
+For each file under src/ and test/:
+1. Read the file completely
+2. Identify issues from the categories below
+3. Fix every issue directly in the code – do NOT just list findings
+
+After all fixes, run the full test suite (`node ./node_modules/mocha/bin/mocha.js --config .mocharc.yml`) and ensure all tests still pass. Fix any regressions.
+
+## Review Categories
+
+### A – Security (OWASP Top 10, agents.md §4.3)
+- No credentials in source code or flow.json – credentials exclusively via Node-RED Credential Store
+- TLS: rejectUnauthorized must default to true; no accidental TLS downgrade paths
+- Input validation at all system boundaries (msg.payload, config fields, transport responses)
+- No prototype pollution, no unsafe regex, no path traversal in file-based config
+- PEM/certificate handling: constant-time comparison where applicable, safe parsing
+- No unguarded eval(), new Function(), or child_process.exec with user input
+
+### B – Robustness & Error Handling
+- All async paths have proper try/catch or .catch() – no unhandled promise rejections
+- EventEmitter listeners: check for missing removeListener/off cleanup on node close
+- Timer cleanup: every setInterval/setTimeout must be cleared on close (use .unref() for non-critical timers)
+- Socket/stream cleanup: destroy() with proper error handling, no dangling connections on partial deploy
+- XState transitions: verify all error events are handled, no stuck states possible
+- Graceful degradation: optional dependencies (serialport) must not crash if missing
+- Null/undefined guards on transport responses before accessing .data or .buffer
+
+### C – Efficiency & Performance
+- Remove dead code, unused variables, unreachable branches
+- Avoid unnecessary object allocations in hot paths (polling loops, queue processing)
+- Buffer operations: prefer Buffer.allocUnsafe() + fill only where needed; avoid redundant copies
+- Cache: verify TTL cleanup doesn't cause memory leaks; check cleanup interval lifecycle
+- Connection pool: verify round-robin doesn't skip unhealthy connections indefinitely
+- Queue: verify FIFO/LIFO drop strategy doesn't cause double-processing of items
+
+### D – Code Quality & Consistency
+- DRY: extract repeated patterns (e.g., parseIntSafe, status updates, validation) into shared utilities
+- Consistent async style: exclusively async/await – no mixed callbacks/promises
+- Consistent error objects: all errors should carry context (connectionId, unitId, FC, address)
+- Node-RED conventions: proper use of node.status(), node.error(err, msg), node.warn(), node.log()
+- Parameter validation: config node defaults must match HTML defaults
+- Remove console.log/console.error – use only node.warn()/node.log()/node.error()
+
+### E – Test Quality
+- Check that mocks match the real API surface of modbus-serial v8
+- Verify sinon stubs are always restored (afterEach with sinon.restore())
+- Check for test isolation: no shared mutable state between tests
+- Verify timer-based tests use sinon.useFakeTimers() correctly
+- Ensure edge cases are tested: empty responses, max PDU size, boundary values
+- Mock files must follow the policy in agents.md §5 (header comments, test/mocks/README.md)
+
+### F – Missing Functionality (add only if clearly needed)
+- Missing input validation that would cause runtime crashes
+- Missing cleanup in node.on('close') handlers
+- Missing error events that would leave the state machine stuck
+- Missing status updates that would leave the Node-RED editor showing stale state
+
+## Output Format
+
+For each fix, briefly state:
+- **File:** relative path
+- **Category:** A/B/C/D/E/F
+- **Issue:** one-line description
+- **Fix:** what was changed
+
+At the end, provide a summary table:
+| Category | Issues Found | Issues Fixed |
+|----------|-------------|-------------|
+
+Update CHANGELOG.md under [Unreleased] with a "Code Review #6" entry listing all fixes.
+Update agents.md §9 with the new test count and "Code Review #6 – N bugs fixed" in the deliverable checklist.
