@@ -1,6 +1,7 @@
 'use strict';
 
 const { buildDiscoverPayload, buildConnectionString } = require('../../lib/parser/payload-builder');
+const { parseIntSafe } = require('../../lib/utils');
 
 /**
  * Modbus Discover Node for Node-RED.
@@ -52,8 +53,8 @@ module.exports = function (RED) {
 
     // Store configuration
     node.name = config.name || '';
-    node.deviceIdCode = parseInt(config.deviceIdCode, 10) || 1;
-    node.objectId = parseInt(config.objectId, 10) || 0;
+    node.deviceIdCode = parseIntSafe(config.deviceIdCode, 1);
+    node.objectId = parseIntSafe(config.objectId, 0);
     node._discovering = false;
 
     // Validate config node reference
@@ -90,10 +91,10 @@ module.exports = function (RED) {
 
       // Allow dynamic overrides via msg properties
       const deviceIdCode = (msg.deviceIdCode !== undefined)
-        ? parseInt(msg.deviceIdCode, 10)
+        ? parseIntSafe(msg.deviceIdCode, node.deviceIdCode)
         : node.deviceIdCode;
       const objectId = (msg.objectId !== undefined)
-        ? parseInt(msg.objectId, 10)
+        ? parseIntSafe(msg.objectId, node.objectId)
         : node.objectId;
 
       node._discovering = true;

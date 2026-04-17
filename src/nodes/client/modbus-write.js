@@ -1,6 +1,7 @@
 'use strict';
 
 const { buildWritePayload, buildReadWritePayload, buildConnectionString } = require('../../lib/parser/payload-builder');
+const { parseIntSafe } = require('../../lib/utils');
 
 /**
  * Modbus Write Node for Node-RED.
@@ -59,15 +60,15 @@ module.exports = function (RED) {
 
     // Store configuration
     node.name = config.name || '';
-    node.fc = parseInt(config.fc, 10) || 6;
-    node.address = parseInt(config.address, 10) || 0;
+    node.fc = parseIntSafe(config.fc, 6);
+    node.address = parseIntSafe(config.address, 0);
     node.addressOffset = config.addressOffset === 'one-based' ? 'one-based' : 'zero-based';
-    node.queueMaxSize = parseInt(config.queueMaxSize, 10) || 100;
+    node.queueMaxSize = parseIntSafe(config.queueMaxSize, 100);
     node.queueDropStrategy = config.queueDropStrategy === 'lifo' ? 'lifo' : 'fifo';
 
     // FC 23 specific: read address and quantity
-    node.readAddress = parseInt(config.readAddress, 10) || 0;
-    node.readQuantity = parseInt(config.readQuantity, 10) || 1;
+    node.readAddress = parseIntSafe(config.readAddress, 0);
+    node.readQuantity = parseIntSafe(config.readQuantity, 1);
 
     // Compute the effective zero-based address for the protocol
     node._protocolAddress = node.addressOffset === 'one-based'
@@ -257,9 +258,12 @@ module.exports = function (RED) {
             node._protocolReadAddress, node.readQuantity,
             node._protocolAddress, entry.value
           );
+          if (!result || !Array.isArray(result.data)) {
+            throw new Error(`FC 23: invalid response from transport (missing data array)`);
+          }
           outPayload = buildReadWritePayload({
             data: result.data,
-            buffer: result.buffer,
+            buffer: result.buffer || null,
             fc: node.fc,
             readAddress: node._protocolReadAddress,
             readQuantity: node.readQuantity,

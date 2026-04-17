@@ -223,8 +223,14 @@ function _validateRegisterPair(registers) {
   if (!Array.isArray(registers) || registers.length !== 2) {
     throw new RangeError('Expected an array of exactly 2 register values');
   }
-  if (typeof registers[0] !== 'number' || typeof registers[1] !== 'number') {
-    throw new TypeError('Register values must be numbers');
+  for (let i = 0; i < 2; i++) {
+    const v = registers[i];
+    if (typeof v !== 'number') {
+      throw new TypeError(`Register ${i} must be a number, got: ${typeof v}`);
+    }
+    if (!Number.isFinite(v) || !Number.isInteger(v) || v < 0 || v > 0xFFFF) {
+      throw new RangeError(`Register ${i} must be an integer in [0, 65535], got: ${v}`);
+    }
   }
 }
 
