@@ -10,6 +10,24 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **Lifecycle / Leak Tests (WP 5.2)** – 29 integration tests in `test/integration/lifecycle.test.js` validating:
+  - Close-handler cleanup for all 6 node types (poll timers, queues, transports, event listeners, caches, pending requests)
+  - Partial deploy scenarios (remove one node, keep others)
+  - Full flow re-deploy with resource verification
+  - Rapid successive deploys (5× client, 5× server) without leaks
+  - EventEmitter listener count verification after re-deploy (no accumulation)
+  - Memory RSS sanity check (< 30 MB growth over 10 deploy cycles)
+  - Edge cases: null timer, null queue, null transport, empty status timers, missing server config, active deferred timer
+
+- **Example Flows (WP 5.3)** – 3 importable example flows in `examples/flows/`:
+  - `watchdog-heartbeat.json` – Watchdog heartbeat pattern with toggling register and timeout detection
+  - `rbe-filter.json` – Report-By-Exception filter with configurable deadband for efficient data logging
+  - `bitwise-coil-packing.json` – Pack 16 coils into a single register and unpack status registers into named bit flags
+
+- **npm Publish Configuration** – Added `"files"` array to `package.json` limiting the published package to `src/`, `examples/`, `LICENSE`, `README.md`, and `CHANGELOG.md` (42 files, 63 kB packed)
+
+- **README.md Finalization (WP 5.4)** – Complete Node Reference section documenting all 6 node types with property tables, I/O descriptions, and payload formats. Enhanced Quick Start with output example. Example flows section with import instructions.
+
 - **Node-RED Help Sidebar Texts** – Comprehensive help documentation for all 6 nodes:
   - `modbus-client-config`: TCP/RTU settings, TLS/mTLS configuration, connection lifecycle, credential handling
   - `modbus-server-config`: Dynamic Server Proxy architecture, cache configuration, TLS, status indicators

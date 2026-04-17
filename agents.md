@@ -204,23 +204,23 @@ The complete document is at [docs/THEORETICAL_FOUNDATIONS.md](docs/THEORETICAL_F
 | Field | Value |
 |-------|-------|
 | Last updated | 2026-04-18 |
-| Test suite | 536 / 536 passing |
+| Test suite | 565 / 565 passing |
 | Active milestone | MS-8 – Quality Assurance & Release |
-| Next open deliverable | Leak tests for partial deploys (WP 5.2) |
-| Open items | Leak tests, `examples/flows/`, README.md, npm publish config, `npm pack` validation |
+| Next open deliverable | CHANGELOG.md finalize [Unreleased] → [0.1.0] |
+| Open items | CHANGELOG finalize before publish |
 | Known issues | None – all bugs from Code Review #5 resolved |
 | Planned (MS-9–12) | 8 new WPs, 13 missing FCs, 4 fieldbus extensions – theoretical foundations (§12–§17) complete |
 
 ### MS-8 Deliverable Checklist
-- [x] 536/536 tests passing, all security certificate fixtures generated
+- [x] 565/565 tests passing, all security certificate fixtures generated
 - [x] Code Review #4 – 9 bugs fixed (LIFO double-done, TLS disconnect, destroy leak, timer cleanup, stopServer timeout, DRY parseIntSafe, poll throttle, unref timer, cert generation)
 - [x] Code Review #5 – 7 fixes (reconnect retry reset, NaN guard, cache range invalidation, disconnect timeout, poll/deferred unref, CRLF cert parse)
 - [x] Theoretical Foundations §12–§17 elaborated for MS-9–MS-12 (extended FCs, exception handling, chunking, data types, RTU-over-TCP, RBE, scan scheduling, watchdog, metrics)
-- [ ] Leak tests for partial Node-RED deploys (WP 5.2)
+- [x] Leak tests for partial Node-RED deploys (WP 5.2) – 29 tests in lifecycle.test.js
 - [x] Node-RED help sidebar texts for all 6 nodes
-- [ ] `examples/flows/` – at least 3 example flows (watchdog, RBE filter, bitwise)
-- [ ] `npm pack` validation – verify package contents
-- [ ] README.md finalized (installation, quick start, node reference)
+- [x] `examples/flows/` – 3 example flows (watchdog-heartbeat, rbe-filter, bitwise-coil-packing)
+- [x] `npm pack` validation – 42 files, 63 kB, files array in package.json
+- [x] README.md finalized (Node Reference, Quick Start, Example Flows)
 - [ ] CHANGELOG.md – finalize `[Unreleased]` → `[0.1.0]` before publish
 
 ---

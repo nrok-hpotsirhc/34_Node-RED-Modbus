@@ -1,0 +1,110 @@
+[
+    {
+        "id": "flow-rbe",
+        "type": "tab",
+        "label": "Modbus RBE Filter",
+        "disabled": false,
+        "info": "## Report-By-Exception (RBE) Filter\n\nThis flow reads holding registers periodically and only forwards messages downstream when the value actually changes. This dramatically reduces traffic in dashboards and databases.\n\n### How it works\n1. **Modbus Read** polls 4 holding registers (HR 0–3) every 5 seconds\n2. **Split Registers** splits the array into individual register messages\n3. **RBE Filter** compares each register to its previous value and only passes changed values\n4. **Dashboard / DB** receives only the changes\n\n### Configuration\n- Edit the **Modbus TCP** config node to match your device\n- Adjust `address`, `quantity`, and `pollInterval` to your needs\n- The deadband function can be tuned for analog noise filtering"
+    },
+    {
+        "id": "rbe-config",
+        "type": "modbus-client-config",
+        "name": "Sensor Gateway (TCP)",
+        "connectionType": "tcp",
+        "host": "192.168.1.20",
+        "port": 502,
+        "unitId": 1,
+        "timeout": 2000,
+        "z": "flow-rbe"
+    },
+    {
+        "id": "rbe-read",
+        "type": "modbus-read",
+        "z": "flow-rbe",
+        "name": "Poll HR 0-3 (5s)",
+        "server": "rbe-config",
+        "fc": "3",
+        "address": 0,
+        "quantity": 4,
+        "addressOffset": "zero-based",
+        "pollInterval": 5000,
+        "x": 160,
+        "y": 140,
+        "wires": [["rbe-split"]]
+    },
+    {
+        "id": "rbe-split",
+        "type": "function",
+        "z": "flow-rbe",
+        "name": "Split Registers",
+        "func": "// Split register array into individual messages with register address as topic\nconst data = msg.payload.data;\nconst baseAddr = msg.payload.address || 0;\nconst messages = [];\nfor (let i = 0; i < data.length; i++) {\n    messages.push({\n        topic: 'register/' + (baseAddr + i),\n        payload: data[i],\n        registerAddress: baseAddr + i,\n        unitId: msg.payload.unitId\n    });\n}\nreturn [messages];",
+        "outputs": 1,
+        "x": 390,
+        "y": 140,
+        "wires": [["rbe-filter"]]
+    },
+    {
+        "id": "rbe-filter",
+        "type": "function",
+        "z": "flow-rbe",
+        "name": "RBE Filter (deadband ±2)",
+        "func": "// Report-By-Exception: only forward if value changed beyond deadband\nconst DEADBAND = 2;\nconst key = 'rbe_' + msg.topic;\nconst prev = flow.get(key);\nconst curr = msg.payload;\n\nif (prev === undefined || Math.abs(curr - prev) > DEADBAND) {\n    flow.set(key, curr);\n    msg.changed = true;\n    msg.previousValue = prev !== undefined ? prev : null;\n    msg.delta = prev !== undefined ? curr - prev : null;\n    return msg;\n}\n// No change beyond deadband → suppress\nreturn null;",
+        "outputs": 1,
+        "x": 610,
+        "y": 140,
+        "wires": [["rbe-debug", "rbe-timestamp"]]
+    },
+    {
+        "id": "rbe-debug",
+        "type": "debug",
+        "z": "flow-rbe",
+        "name": "Changed Values",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": true,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "payload",
+        "statusType": "auto",
+        "x": 840,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "rbe-timestamp",
+        "type": "function",
+        "z": "flow-rbe",
+        "name": "Add Timestamp",
+        "func": "// Add ISO timestamp for database logging\nmsg.timestamp = new Date().toISOString();\nmsg.payload = {\n    register: msg.registerAddress,\n    value: msg.payload,\n    previous: msg.previousValue,\n    delta: msg.delta,\n    timestamp: msg.timestamp\n};\nreturn msg;",
+        "outputs": 1,
+        "x": 840,
+        "y": 180,
+        "wires": [["rbe-db-debug"]]
+    },
+    {
+        "id": "rbe-db-debug",
+        "type": "debug",
+        "z": "flow-rbe",
+        "name": "→ Database Record",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 1060,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "rbe-comment",
+        "type": "comment",
+        "z": "flow-rbe",
+        "name": "Tip: Connect the 'Database Record' output to an InfluxDB or PostgreSQL node",
+        "info": "The RBE-filtered output contains:\n- `register`: address\n- `value`: current value\n- `previous`: previous value\n- `delta`: change amount\n- `timestamp`: ISO string\n\nThis is ideal for time-series databases.",
+        "x": 370,
+        "y": 280,
+        "wires": []
+    }
+]

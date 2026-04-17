@@ -17,7 +17,7 @@
 | MS-5 | Server/Slave – Proxy Architecture | [x] Complete | WP 3.1, WP 3.2, WP 3.3 | TCP/RTU listener, Modbus-In/Out nodes |
 | MS-6 | Server Caching & Optimization | [x] Complete | WP 3.4 | In-memory hashmap, performance |
 | MS-7 | Modbus/TCP Security | [x] Complete | WP 4.1, WP 4.2, WP 4.3 | TLS 1.3, mTLS, credential management |
-| MS-8 | Quality Assurance & Release | [~] In Progress | WP 5.1, WP 5.2, WP 5.3, WP 5.4 | Testing, docs, npm publish |
+| MS-8 | Quality Assurance & Release | [~] In Progress | WP 5.1, WP 5.2, WP 5.3, WP 5.4 | Testing, docs, npm publish – leak tests, examples, README done; CHANGELOG finalize pending |
 | MS-9 | High-Priority Extended FCs | [ ] Open | WP 6.1, WP 6.2 | FC 22/23, FC 43/14 Device Identification |
 | MS-10 | Serial Diagnostics & Legacy FCs | [ ] Open | WP 6.3, WP 6.4 | FC 07/08 diagnostics, FC 11/12/17/20/21/24 |
 | MS-11 | Fieldbus Architecture Extensions | [ ] Open | WP 7.1, WP 7.2, WP 7.3, WP 7.4 | Chunking, data types, exceptions, RTU-TCP |
@@ -222,17 +222,17 @@
 - **WP 5.4** – License compliance, npm registry, Node-RED Flow Library
 
 **Deliverables:**
-- [x] Complete test suite with >80% coverage – 536/536 tests passing, all security tests fixed
+- [x] Complete test suite with >80% coverage – 565/565 tests passing, all security tests fixed
 - [x] Code Review #4: 9 bug fixes and improvements (see CHANGELOG.md)
 - [x] Code Review #5: 7 fixes + 4 new tests (reconnect retry reset, NaN guard, cache range invalidation, disconnect timeout, poll/deferred unref, CRLF cert parse)
 - [x] Test certificate fixtures generated (`test/fixtures/certs/generate-certs.js`)
 - [x] Shared utility extracted (`src/lib/utils.js`) – DRY improvement
-- [ ] Leak tests verified for partial deploys
+- [x] Leak tests verified for partial deploys – 29 tests in `test/integration/lifecycle.test.js`
 - [x] Node-RED help sidebar texts for all nodes
-- [ ] `examples/flows/` with examples (watchdog, RBE filter, bitwise stuffing)
-- [ ] npm publish configuration
-- [ ] CHANGELOG.md finalized
-- [ ] README.md finalized
+- [x] `examples/flows/` – 3 example flows (watchdog-heartbeat, rbe-filter, bitwise-coil-packing)
+- [x] npm publish configuration – `"files"` array in package.json (42 files, 63 kB)
+- [ ] CHANGELOG.md finalized – `[Unreleased]` → `[0.1.0]` before publish
+- [x] README.md finalized – Node Reference, Quick Start, Example Flows sections
 
 **Acceptance Criteria:**
 - `npm test` passes, coverage > 80%
@@ -405,3 +405,4 @@ watchdog, and runtime metrics.
 | 2026-04-17 | MS-9 – MS-12 | Planned | FC gap analysis: 13 missing FCs identified; 8 new WPs (6.1–7.8) and 4 new milestones (MS-9–MS-12) added to planning documents |
 | 2026-04-17 | MS-9 – MS-12 | Planned | Theoretical Foundations §12–§17 elaborated: extended FC PDU structures, exception responses, request chunking, extended data types (Float64/Int64/BCD/String/DateTime), RTU-over-TCP, industrial patterns (RBE, scan scheduling, watchdog, metrics). All WP and milestone theory references updated |
 | 2026-04-18 | MS-8 | In Progress | Node-RED help sidebar texts enhanced for all 6 nodes (modbus-client-config, modbus-server-config, modbus-read, modbus-write, modbus-in, modbus-out). Added status indicators, error behavior, references, default values. 536/536 tests passing |
+| 2026-04-18 | MS-8 | In Progress | 29 lifecycle/leak tests (WP 5.2), 3 example flows (WP 5.3), README Node Reference (WP 5.4), npm pack config (files array). 565/565 tests passing |

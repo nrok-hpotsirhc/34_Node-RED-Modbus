@@ -37,6 +37,13 @@
     "node": ">=18.0.0"
   },
   "main": "src/index.js",
+  "files": [
+    "src/",
+    "examples/",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "test": "mocha --config .mocharc.yml",
     "test:unit": "mocha --config .mocharc.yml test/unit/**/*.test.js",
