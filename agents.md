@@ -98,6 +98,22 @@ node-red-contrib-modbus-pro/
 4. **Write tests alongside code** – every module needs unit tests BEFORE it is considered complete.
 5. **Update CHANGELOG.md** with every feature or bugfix.
 
+### 4.1a Status Maintenance (MANDATORY)
+
+> **The project status MUST be kept up-to-date at all times.** After every agent session,
+> every code change, and every fix, update the following files **before ending the session**:
+
+| File | What to update |
+|------|---------------|
+| `MILESTONES.md` – Overview table | Set status to `[x] Complete`, `[~] In Progress`, or `[ ] Open` |
+| `MILESTONES.md` – Deliverables | Check off `[x]` each completed deliverable |
+| `MILESTONES.md` – Progress Log | Add a new row with date, milestone, status, and a brief note including test count |
+| `agents.md` – §9 Current Status | Update the status snapshot (test count, open items, last session date) |
+| `CHANGELOG.md` | Add an entry under `[Unreleased]` describing what changed |
+
+**Rule:** No session ends without all five files reflecting the actual state. A session that
+leaves the status stale is considered incomplete.
+
 ### 4.2 Coding Standards
 - **Async code:** Exclusively async/await and Promises – NO callback hell, NO setTimeout cascades.
 - **State management:** All connection states via XState – NO hand-coded if/else FSMs.
@@ -140,16 +156,16 @@ node-red-contrib-modbus-pro/
 
 The implementation follows the **Work Breakdown Structure** from [docs/WORK_PACKAGES.md](docs/WORK_PACKAGES.md), grouped into 8 milestones (see [MILESTONES.md](MILESTONES.md)):
 
-| Milestone | Focus | Work Packages |
-|-----------|-------|---------------|
-| MS-1 | Project Foundation & Transport | WP 1.1, WP 1.2 |
-| MS-2 | State Machine & Connection | WP 1.3, WP 1.4 |
-| MS-3 | Client Read Nodes | WP 2.1, WP 2.4 |
-| MS-4 | Client Write Nodes & Queue | WP 2.2, WP 2.3 |
-| MS-5 | Server Proxy Architecture | WP 3.1, WP 3.2, WP 3.3 |
-| MS-6 | Server Caching & Optimization | WP 3.4 |
-| MS-7 | Modbus/TCP Security | WP 4.1, WP 4.2, WP 4.3 |
-| MS-8 | QA, Documentation & Release | WP 5.1, WP 5.2, WP 5.3, WP 5.4 |
+| Milestone | Focus | Work Packages | Status |
+|-----------|-------|---------------|--------|
+| MS-1 | Project Foundation & Transport | WP 1.1, WP 1.2 | [x] Complete |
+| MS-2 | State Machine & Connection | WP 1.3, WP 1.4 | [x] Complete |
+| MS-3 | Client Read Nodes | WP 2.1, WP 2.4 | [x] Complete |
+| MS-4 | Client Write Nodes & Queue | WP 2.2, WP 2.3 | [x] Complete |
+| MS-5 | Server Proxy Architecture | WP 3.1, WP 3.2, WP 3.3 | [x] Complete |
+| MS-6 | Server Caching & Optimization | WP 3.4 | [x] Complete |
+| MS-7 | Modbus/TCP Security | WP 4.1, WP 4.2, WP 4.3 | [x] Complete |
+| MS-8 | QA, Documentation & Release | WP 5.1, WP 5.2, WP 5.3, WP 5.4 | [~] In Progress |
 
 ### Session Workflow per Milestone:
 1. Read MILESTONES.md → check current status
@@ -172,6 +188,32 @@ The complete document is at [docs/THEORETICAL_FOUNDATIONS.md](docs/THEORETICAL_F
 - **Function codes:** FC 01-04 (Read), FC 05/06 (Write Single), FC 15/16 (Write Multiple). Max payload 240 bytes.
 - **RTU vs. TCP:** RTU is half-duplex (semaphore required), TCP is full-duplex (connection pool possible).
 - **Security:** TLS 1.3 over port 802, mTLS with X.509v3, credentials in the Node-RED Credential Store.
+
+---
+
+## 9. Current Project Status
+
+> **This section MUST be updated at the end of every agent session.**
+> It provides a quick status snapshot without requiring a full read of MILESTONES.md.
+
+| Field | Value |
+|-------|-------|
+| Last updated | 2026-04-17 |
+| Test suite | 532 / 532 passing |
+| Active milestone | MS-8 – Quality Assurance & Release |
+| Next open deliverable | Leak tests for partial deploys (WP 5.2) |
+| Open items | `examples/flows/`, README.md, npm publish config, `npm pack` validation |
+| Known issues | None – all bugs from Code Review #4 resolved |
+
+### MS-8 Deliverable Checklist
+- [x] 532/532 tests passing, all security certificate fixtures generated
+- [x] Code Review #4 – 9 bugs fixed (LIFO double-done, TLS disconnect, destroy leak, timer cleanup, stopServer timeout, DRY parseIntSafe, poll throttle, unref timer, cert generation)
+- [ ] Leak tests for partial Node-RED deploys (WP 5.2)
+- [ ] Node-RED help sidebar texts for all 6 nodes
+- [ ] `examples/flows/` – at least 3 example flows (watchdog, RBE filter, bitwise)
+- [ ] `npm pack` validation – verify package contents
+- [ ] README.md finalized (installation, quick start, node reference)
+- [ ] CHANGELOG.md – finalize `[Unreleased]` → `[0.1.0]` before publish
 
 ---
 
