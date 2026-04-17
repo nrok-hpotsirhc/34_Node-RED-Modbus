@@ -99,7 +99,22 @@
 
 ---
 
-## 8. Community Resources
+## 8. Industrial Standards and Data Type References
+
+| ID | Standard/Resource | Source | Used In |
+|----|----------|--------|---------|
+| REF-23 | IEEE 754-2008 (Floating Point Arithmetic) | [ieee.org](https://standards.ieee.org/standard/754-2008.html) | Float32/Float64 data types (§15) |
+| REF-24 | IEC 61131-3 Ed. 3 (PLC Programming Languages) | IEC | Date/Time types, RBE dead-band (§15, §17.1) |
+| REF-25 | IEC 61508 Ed. 2 (Functional Safety) | IEC | Watchdog/safe-state patterns (§17.3) |
+| REF-26 | ISO 13849-1 Ed. 3 (Machine Safety) | ISO | Performance level requirements (§17.3) |
+| REF-27 | IEC 62443 (Industrial Cybersecurity) | IEC | Network segmentation, timeout policies (§5, §17.3) |
+| REF-28 | OPC UA Part 8 – Data Access | [opcfoundation.org](https://opcfoundation.org) | DeadBandFilter concept (§17.1) |
+| REF-29 | ISO 22400 (OEE / Manufacturing KPIs) | ISO | Runtime metrics methodology (§17.4) |
+| REF-30 | Moxa NPort Series User Manual | [moxa.com](https://www.moxa.com) | RTU-over-TCP gateway reference (§16) |
+
+---
+
+## 9. Community Resources
 
 | Resource | URL | Description |
 |----------|-----|-------------|

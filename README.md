@@ -12,7 +12,7 @@
 
 ## Development Progress
 
-> **Current State (2026-04-17):** MS-7 complete – TLS 1.3, mTLS, X.509v3 security layer fully implemented and tested. 536/536 tests passing. MS-8 (QA & Release) in progress.
+> **Current State (2026-04-17):** MS-7 complete – TLS 1.3, mTLS, X.509v3 security layer fully implemented and tested. 536/536 tests passing. MS-8 (QA & Release) in progress. Theoretical foundations for MS-9–MS-12 (extended FCs, fieldbus extensions) elaborated.
 
 | # | Milestone | Status | Progress |
 |---|-----------|--------|----------|
@@ -24,8 +24,12 @@
 | MS-6 | Server Caching & Optimization | ✅ Complete | `██████████` 100 % |
 | MS-7 | Modbus/TCP Security | ✅ Complete | `██████████` 100 % |
 | MS-8 | Quality Assurance & Release | 🔄 In Progress | `████░░░░░░` 40 % |
+| MS-9 | High-Priority Extended FCs | 🔲 Open | `░░░░░░░░░░` 0 % |
+| MS-10 | Serial Diagnostics & Legacy FCs | 🔲 Open | `░░░░░░░░░░` 0 % |
+| MS-11 | Fieldbus Architecture Extensions | 🔲 Open | `░░░░░░░░░░` 0 % |
+| MS-12 | Advanced Fieldbus Nodes | 🔲 Open | `░░░░░░░░░░` 0 % |
 
-**Overall Progress: 7 / 8 milestones completed – 536 / 536 tests passing**
+**Overall Progress: 7 / 12 milestones completed – 536 / 536 tests passing**
 
 > Milestone details: [MILESTONES.md](MILESTONES.md) · Work packages: [docs/WORK_PACKAGES.md](docs/WORK_PACKAGES.md)
 
@@ -87,16 +91,24 @@ npm install node-red-contrib-modbus-pro serialport
 
 ## Supported Function Codes
 
-| FC | Function | Data Type |
-|----|----------|-----------|
-| 01 | Read Coils | Bit (R) |
-| 02 | Read Discrete Inputs | Bit (R) |
-| 03 | Read Holding Registers | 16-Bit (R) |
-| 04 | Read Input Registers | 16-Bit (R) |
-| 05 | Write Single Coil | Bit (W) |
-| 06 | Write Single Register | 16-Bit (W) |
-| 15 | Write Multiple Coils | Bit[] (W) |
-| 16 | Write Multiple Registers | 16-Bit[] (W) |
+| FC | Function | Data Type | Status |
+|----|----------|-----------|--------|
+| 01 | Read Coils | Bit (R) | ✅ |
+| 02 | Read Discrete Inputs | Bit (R) | ✅ |
+| 03 | Read Holding Registers | 16-Bit (R) | ✅ |
+| 04 | Read Input Registers | 16-Bit (R) | ✅ |
+| 05 | Write Single Coil | Bit (W) | ✅ |
+| 06 | Write Single Register | 16-Bit (W) | ✅ |
+| 15 | Write Multiple Coils | Bit[] (W) | ✅ |
+| 16 | Write Multiple Registers | 16-Bit[] (W) | ✅ |
+| 22 | Mask Write Register | 16-Bit (W) | 🔲 MS-9 |
+| 23 | Read/Write Multiple Registers | 16-Bit (R/W) | 🔲 MS-9 |
+| 43/14 | Read Device Identification | String (R) | 🔲 MS-9 |
+| 07 | Read Exception Status | Byte (R) | 🔲 MS-10 |
+| 08 | Diagnostics | Various | 🔲 MS-10 |
+| 11/12/17 | Serial Diagnostics | Various | 🔲 MS-10 |
+| 20/21 | File Record Access | File (R/W) | 🔲 MS-10 |
+| 24 | Read FIFO Queue | 16-Bit[] (R) | 🔲 MS-10 |
 
 ## Project Structure
 

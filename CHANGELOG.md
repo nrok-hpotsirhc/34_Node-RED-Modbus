@@ -10,6 +10,22 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Documentation
+- **Theoretical Foundations Expansion (§12–§17) for MS-9–MS-12**
+  - Added §12: Extended Function Codes – PDU Structure and Protocol Behavior
+    - Detailed PDU request/response structures for FC 22, 23, 43/14, 07, 08, 11, 12, 17, 20, 21, 24
+    - modbus-serial API mapping and library support summary table
+    - FC 08 full sub-function reference (13 diagnostic sub-functions)
+    - FC 43/14 MEI conformity levels, object ID map, and streaming protocol
+  - Added §13: Modbus Exception Responses – error response format, all exception codes (0x01–0x0B), gateway-specific behavior, structured error object design with retryable flag
+  - Added §14: PDU Payload Limits and Automatic Request Chunking – per-FC maximum quantities, chunking algorithm, reassembly considerations, broadcast (Unit ID 0) semantics
+  - Added §15: Extended Data Types Across Modbus Registers – Float64, Int64/UInt64 (BigInt), ASCII String, BCD, Unix Timestamp, IEC 61131-3 DateTime with byte-order variants
+  - Added §16: Modbus RTU over TCP Encapsulation – MBAP vs raw RTU framing, gateway product landscape (Moxa, Lantronix, Wago, Digi, ADAM), inter-frame delay formula, modbus-serial `connectTcpRTUBuffered` API
+  - Added §17: Industrial Operational Patterns – RBE/dead-band filtering (IEC 61131-3), multi-rate scan scheduling, watchdog/safe-state heartbeat (IEC 61508, ISO 13849), runtime metrics with EMA
+  - Extended Glossary with 6 new terms (BCD, EMA, MBAP, MEI, OEE, SIL)
+  - Updated Table of Contents to include §12–§17
+- Updated all WP (6.1–7.8) theory references to point to new dedicated sections
+- Updated all milestone (MS-9–MS-12) theory references in MILESTONES.md
+
 - **FC Gap Analysis & Roadmap Planning (MS-9–MS-12)**
   - Conducted complete gap analysis against the Modbus Application Protocol Specification V1.1b3: 8 of 21 function codes were already implemented (FC 01–06, 15, 16); 13 function codes are now planned in 4 new milestones
   - Updated `docs/THEORETICAL_FOUNDATIONS.md` §3 with a complete FC status table (✅ Implemented / 🔲 Planned / ⬜ Out of scope) and detailed descriptions of all planned FCs

@@ -477,7 +477,7 @@ Node-RED UI tests with `node-red-node-test-helper` and simulation of connection 
 
 **Milestone:** MS-9  
 **Dependencies:** WP 2.1, WP 2.2 (client nodes)  
-**Theoretical Foundation:** [§3 Complete FC table](THEORETICAL_FOUNDATIONS.md#3-the-modbus-data-model)  
+**Theoretical Foundation:** [§12.1 FC 22](THEORETICAL_FOUNDATIONS.md#121-fc-22--mask-write-register-0x16), [§12.2 FC 23](THEORETICAL_FOUNDATIONS.md#122-fc-23--readwrite-multiple-registers-0x17), [§12.10 Library Support](THEORETICAL_FOUNDATIONS.md#1210-library-support-summary)  
 **Priority:** HIGH – used in ~30% of PLC deployments
 
 **Description:**  
@@ -512,7 +512,7 @@ as `writeAndReadRegisters(writeAddress, writeValues, readAddress, readLength, un
 
 **Milestone:** MS-9  
 **Dependencies:** WP 2.1 (client infrastructure)  
-**Theoretical Foundation:** [§3 Complete FC table](THEORETICAL_FOUNDATIONS.md#3-the-modbus-data-model)  
+**Theoretical Foundation:** [§12.3 FC 43/14 – MEI Device Identification](THEORETICAL_FOUNDATIONS.md#123-fc-4314--read-device-identification-mei-transport-0x2b0x0e), [§12.10 Library Support](THEORETICAL_FOUNDATIONS.md#1210-library-support-summary)  
 **Priority:** HIGH – mandatory for IIoT asset management and SCADA inventory
 
 **Description:**  
@@ -542,7 +542,7 @@ device identification object map as `msg.payload.deviceInfo`.
 
 **Milestone:** MS-10  
 **Dependencies:** WP 1.1 (RTU transport)  
-**Theoretical Foundation:** [§3 Complete FC table](THEORETICAL_FOUNDATIONS.md#3-the-modbus-data-model)  
+**Theoretical Foundation:** [§12.4 FC 07](THEORETICAL_FOUNDATIONS.md#124-fc-07--read-exception-status-0x07), [§12.5 FC 08 Diagnostics](THEORETICAL_FOUNDATIONS.md#125-fc-08--diagnostics-0x08), [§12.10 Library Support](THEORETICAL_FOUNDATIONS.md#1210-library-support-summary)  
 **Priority:** MEDIUM – required for RTU commissioning and preventive maintenance
 
 **Description:**  
@@ -587,7 +587,7 @@ Results are emitted as `msg.payload.diagnostics`.
 
 **Milestone:** MS-10  
 **Dependencies:** WP 6.3  
-**Theoretical Foundation:** [§3 Complete FC table](THEORETICAL_FOUNDATIONS.md#3-the-modbus-data-model)  
+**Theoretical Foundation:** [§12.6 FC 11/12](THEORETICAL_FOUNDATIONS.md#126-fc-1112--communication-event-counter-and-event-log-0x0b0x0c), [§12.7 FC 17](THEORETICAL_FOUNDATIONS.md#127-fc-17--report-server-id-0x11), [§12.8 FC 20/21](THEORETICAL_FOUNDATIONS.md#128-fc-2021--file-record-access-0x140x15), [§12.9 FC 24](THEORETICAL_FOUNDATIONS.md#129-fc-24--read-fifo-queue-0x18)  
 **Priority:** LOW – niche serial/legacy environments; rarely used in modern IIoT
 
 **Description:**  
@@ -626,6 +626,7 @@ or a new `modbus-file` node (FC 20/21/24):
 
 **Milestone:** MS-11  
 **Dependencies:** WP 2.1, WP 2.2  
+**Theoretical Foundation:** [§14 PDU Limits and Request Chunking](THEORETICAL_FOUNDATIONS.md#14-pdu-payload-limits-and-automatic-request-chunking)  
 **Priority:** HIGH – affects correctness for large register blocks
 
 **Description:**  
@@ -659,6 +660,7 @@ to avoid false timeout errors.
 
 **Milestone:** MS-11  
 **Dependencies:** WP 2.4 (buffer-parser)  
+**Theoretical Foundation:** [§15 Extended Data Types](THEORETICAL_FOUNDATIONS.md#15-extended-data-types-across-modbus-registers)  
 **Priority:** HIGH – required for sensors/drives with 32-bit and 64-bit process values
 
 **Description:**  
@@ -687,6 +689,7 @@ and exposing them in the `modbus-read` UI dropdown ("Data Type") is the cleanest
 
 **Milestone:** MS-11  
 **Dependencies:** WP 2.1, WP 2.2  
+**Theoretical Foundation:** [§13 Modbus Exception Responses](THEORETICAL_FOUNDATIONS.md#13-modbus-exception-responses)  
 **Priority:** HIGH – essential for SCADA error classification and alarm management
 
 **Description:**  
@@ -720,6 +723,7 @@ so downstream nodes (e.g., alarm managers, dashboards) can react without string 
 
 **Milestone:** MS-11  
 **Dependencies:** WP 1.1 (transport layer)  
+**Theoretical Foundation:** [§16 RTU over TCP Encapsulation](THEORETICAL_FOUNDATIONS.md#16-modbus-rtu-over-tcp-encapsulation)  
 **Priority:** MEDIUM – required for many industrial TCP→RTU gateway products
 
 **Description:**  
@@ -750,6 +754,7 @@ TCP and RTU as a third transport type: **"RTU over TCP"**.
 
 **Milestone:** MS-12  
 **Dependencies:** WP 2.1  
+**Theoretical Foundation:** [§17.1 RBE and Dead-Band Filtering](THEORETICAL_FOUNDATIONS.md#171-report-by-exception-rbe-and-dead-band-filtering)  
 **Priority:** MEDIUM – reduces unnecessary downstream processing and network traffic
 
 **Description:**  
@@ -774,6 +779,7 @@ a recommended best practice to reduce event bus load in large SCADA systems.
 
 **Milestone:** MS-12  
 **Dependencies:** WP 2.1, WP 7.1  
+**Theoretical Foundation:** [§17.2 Multi-Rate Scan Scheduling](THEORETICAL_FOUNDATIONS.md#172-multi-rate-scan-scheduling)  
 **Priority:** MEDIUM – standard feature in any mature SCADA driver
 
 **Description:**  
@@ -799,6 +805,7 @@ serialized via the backpressure queue.
 
 **Milestone:** MS-12  
 **Dependencies:** WP 2.2, WP 1.3 (state machine)  
+**Theoretical Foundation:** [§17.3 Watchdog and Safe-State Heartbeat](THEORETICAL_FOUNDATIONS.md#173-watchdog-and-safe-state-heartbeat)  
 **Priority:** MEDIUM – required for functional-safety use cases
 
 **Description:**  
@@ -829,6 +836,7 @@ connectivity, preventing a runaway process. This is a common requirement in func
 
 **Milestone:** MS-12  
 **Dependencies:** WP 1.3, WP 1.4, WP 2.3  
+**Theoretical Foundation:** [§17.4 Runtime Metrics](THEORETICAL_FOUNDATIONS.md#174-runtime-metrics-and-operational-monitoring)  
 **Priority:** LOW – operational excellence, OEE / availability dashboards
 
 **Description:**  

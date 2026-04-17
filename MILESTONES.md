@@ -261,7 +261,11 @@ enables automated device discovery.
 - [ ] `src/nodes/client/modbus-discover.html`
 - [ ] `test/integration/modbus-discover.test.js`
 
-**Theoretical Foundations:** See [THEORETICAL_FOUNDATIONS.md §3 Complete FC table](docs/THEORETICAL_FOUNDATIONS.md#3-the-modbus-data-model)
+**Theoretical Foundations:**
+- [THEORETICAL_FOUNDATIONS.md §12.1 FC 22 – Mask Write Register](docs/THEORETICAL_FOUNDATIONS.md#121-fc-22--mask-write-register-0x16)
+- [THEORETICAL_FOUNDATIONS.md §12.2 FC 23 – Read/Write Multiple Registers](docs/THEORETICAL_FOUNDATIONS.md#122-fc-23--readwrite-multiple-registers-0x17)
+- [THEORETICAL_FOUNDATIONS.md §12.3 FC 43/14 – Read Device Identification](docs/THEORETICAL_FOUNDATIONS.md#123-fc-4314--read-device-identification-mei-transport-0x2b0x0e)
+- [THEORETICAL_FOUNDATIONS.md §12.10 Library Support Summary](docs/THEORETICAL_FOUNDATIONS.md#1210-library-support-summary)
 
 **Acceptance Criteria:**
 - FC 22 performs atomic AND/OR mask write on a holding register
@@ -288,7 +292,14 @@ access for legacy PLC file systems. Primarily relevant for brownfield RTU deploy
 - [ ] `src/nodes/client/modbus-file.html`
 - [ ] `test/integration/modbus-file.test.js`
 
-**Theoretical Foundations:** See [THEORETICAL_FOUNDATIONS.md §3 Complete FC table](docs/THEORETICAL_FOUNDATIONS.md#3-the-modbus-data-model)
+**Theoretical Foundations:**
+- [THEORETICAL_FOUNDATIONS.md §12.4 FC 07 – Read Exception Status](docs/THEORETICAL_FOUNDATIONS.md#124-fc-07--read-exception-status-0x07)
+- [THEORETICAL_FOUNDATIONS.md §12.5 FC 08 – Diagnostics](docs/THEORETICAL_FOUNDATIONS.md#125-fc-08--diagnostics-0x08)
+- [THEORETICAL_FOUNDATIONS.md §12.6 FC 11/12 – Event Counter/Log](docs/THEORETICAL_FOUNDATIONS.md#126-fc-1112--communication-event-counter-and-event-log-0x0b0x0c)
+- [THEORETICAL_FOUNDATIONS.md §12.7 FC 17 – Report Server ID](docs/THEORETICAL_FOUNDATIONS.md#127-fc-17--report-server-id-0x11)
+- [THEORETICAL_FOUNDATIONS.md §12.8 FC 20/21 – File Record Access](docs/THEORETICAL_FOUNDATIONS.md#128-fc-2021--file-record-access-0x140x15)
+- [THEORETICAL_FOUNDATIONS.md §12.9 FC 24 – Read FIFO Queue](docs/THEORETICAL_FOUNDATIONS.md#129-fc-24--read-fifo-queue-0x18)
+- [THEORETICAL_FOUNDATIONS.md §12.10 Library Support Summary](docs/THEORETICAL_FOUNDATIONS.md#1210-library-support-summary)
 
 **Acceptance Criteria:**
 - FC 08/0x00 loopback echo test works on RTU bus
@@ -323,8 +334,10 @@ RTU-over-TCP gateway support.
 - [ ] `test/unit/transport/rtu-over-tcp-transport.test.js`
 
 **Theoretical Foundations:**
-- [THEORETICAL_FOUNDATIONS.md §3 Complete FC table](docs/THEORETICAL_FOUNDATIONS.md#3-the-modbus-data-model)
-- [THEORETICAL_FOUNDATIONS.md §4 Endianness](docs/THEORETICAL_FOUNDATIONS.md#4-endianness-in-javascript)
+- [THEORETICAL_FOUNDATIONS.md §13 Modbus Exception Responses](docs/THEORETICAL_FOUNDATIONS.md#13-modbus-exception-responses)
+- [THEORETICAL_FOUNDATIONS.md §14 PDU Limits and Request Chunking](docs/THEORETICAL_FOUNDATIONS.md#14-pdu-payload-limits-and-automatic-request-chunking)
+- [THEORETICAL_FOUNDATIONS.md §15 Extended Data Types](docs/THEORETICAL_FOUNDATIONS.md#15-extended-data-types-across-modbus-registers)
+- [THEORETICAL_FOUNDATIONS.md §16 RTU over TCP Encapsulation](docs/THEORETICAL_FOUNDATIONS.md#16-modbus-rtu-over-tcp-encapsulation)
 
 **Acceptance Criteria:**
 - A read request for 300 registers is automatically split into 3 sequential requests
@@ -362,6 +375,12 @@ watchdog, and runtime metrics.
 - [ ] `test/unit/client/modbus-stats.test.js`
 - [ ] `package.json` – register all 4 new nodes
 
+**Theoretical Foundations:**
+- [THEORETICAL_FOUNDATIONS.md §17.1 Report-by-Exception (RBE)](docs/THEORETICAL_FOUNDATIONS.md#171-report-by-exception-rbe-and-dead-band-filtering)
+- [THEORETICAL_FOUNDATIONS.md §17.2 Multi-Rate Scan Scheduling](docs/THEORETICAL_FOUNDATIONS.md#172-multi-rate-scan-scheduling)
+- [THEORETICAL_FOUNDATIONS.md §17.3 Watchdog and Safe-State Heartbeat](docs/THEORETICAL_FOUNDATIONS.md#173-watchdog-and-safe-state-heartbeat)
+- [THEORETICAL_FOUNDATIONS.md §17.4 Runtime Metrics](docs/THEORETICAL_FOUNDATIONS.md#174-runtime-metrics-and-operational-monitoring)
+
 **Acceptance Criteria:**
 - `modbus-rbe` passes only changed values downstream with configurable dead-band
 - `modbus-scanner` supports at least 3 independent scan groups with different intervals
@@ -384,3 +403,4 @@ watchdog, and runtime metrics.
 | 2026-04-17 | MS-8 | In Progress | Code Review #4: 9 fixes (LIFO double-done, TLS disconnect, destroy leak, timer cleanup, stopServer timeout, DRY parseIntSafe, poll throttle, unref timer, test cert generation). 532/532 tests passing |
 | 2026-04-17 | MS-8 | In Progress | Code Review #5: 7 fixes (reconnect retry reset, NaN guard, cache range invalidation, disconnect timeout, poll unref, deferred unref, CRLF cert parse). 4 new tests. 536/536 passing |
 | 2026-04-17 | MS-9 – MS-12 | Planned | FC gap analysis: 13 missing FCs identified; 8 new WPs (6.1–7.8) and 4 new milestones (MS-9–MS-12) added to planning documents |
+| 2026-04-17 | MS-9 – MS-12 | Planned | Theoretical Foundations §12–§17 elaborated: extended FC PDU structures, exception responses, request chunking, extended data types (Float64/Int64/BCD/String/DateTime), RTU-over-TCP, industrial patterns (RBE, scan scheduling, watchdog, metrics). All WP and milestone theory references updated |

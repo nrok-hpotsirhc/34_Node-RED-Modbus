@@ -208,13 +208,14 @@ The complete document is at [docs/THEORETICAL_FOUNDATIONS.md](docs/THEORETICAL_F
 | Active milestone | MS-8 – Quality Assurance & Release |
 | Next open deliverable | Leak tests for partial deploys (WP 5.2) |
 | Open items | `examples/flows/`, README.md, npm publish config, `npm pack` validation |
-| Known issues | None – all bugs from Code Review #4 resolved |
-| Planned (MS-9–12) | 8 new WPs, 13 missing FCs documented, 4 fieldbus extensions planned |
+| Known issues | None – all bugs from Code Review #5 resolved |
+| Planned (MS-9–12) | 8 new WPs, 13 missing FCs, 4 fieldbus extensions – theoretical foundations (§12–§17) complete |
 
 ### MS-8 Deliverable Checklist
 - [x] 536/536 tests passing, all security certificate fixtures generated
 - [x] Code Review #4 – 9 bugs fixed (LIFO double-done, TLS disconnect, destroy leak, timer cleanup, stopServer timeout, DRY parseIntSafe, poll throttle, unref timer, cert generation)
 - [x] Code Review #5 – 7 fixes (reconnect retry reset, NaN guard, cache range invalidation, disconnect timeout, poll/deferred unref, CRLF cert parse)
+- [x] Theoretical Foundations §12–§17 elaborated for MS-9–MS-12 (extended FCs, exception handling, chunking, data types, RTU-over-TCP, RBE, scan scheduling, watchdog, metrics)
 - [ ] Leak tests for partial Node-RED deploys (WP 5.2)
 - [ ] Node-RED help sidebar texts for all 6 nodes
 - [ ] `examples/flows/` – at least 3 example flows (watchdog, RBE filter, bitwise)
