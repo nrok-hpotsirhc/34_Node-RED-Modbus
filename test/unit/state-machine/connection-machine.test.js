@@ -189,6 +189,11 @@ describe('Connection State Machine', function () {
       actor.send({ type: 'READ_REQUEST', request: { operation: 'readCoils', address: -1, length: 10 } });
       expect(actor.getSnapshot().value).to.equal('connected');
     });
+
+    it('should NOT transition on NaN address', function () {
+      actor.send({ type: 'READ_REQUEST', request: { operation: 'readCoils', address: NaN, length: 10 } });
+      expect(actor.getSnapshot().value).to.equal('connected');
+    });
   });
 
   describe('CONNECTED → WRITING', function () {
@@ -537,6 +542,7 @@ describe('Connection State Machine', function () {
       // 5. Reconnect succeeds
       actor.send({ type: 'SUCCESS' });
       expect(actor.getSnapshot().value).to.equal('connected');
+      expect(actor.getSnapshot().context.retryCount).to.equal(0);
 
       // 6. Can now do read/write
       actor.send(readRequest());

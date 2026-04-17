@@ -373,7 +373,7 @@ class CertificateValidator {
     }
 
     const roles = [];
-    const lines = subject.split('\n');
+    const lines = subject.split(/\r?\n/);
     for (const line of lines) {
       const trimmed = line.trim();
       if (trimmed.startsWith('OU=')) {

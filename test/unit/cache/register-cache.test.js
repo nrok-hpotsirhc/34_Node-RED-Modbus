@@ -406,6 +406,38 @@ describe('RegisterCache', function () {
       expect(events[0].reason).to.equal('write');
       cache.destroy();
     });
+
+    it('should invalidate cached range read when write hits middle of range', function () {
+      const cache = new RegisterCache({ enabled: true });
+      // Cache a batch read: FC 03, unit 1, address 0, quantity 10
+      cache.set(3, 1, 0, 10, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+      // Write to address 5 (inside the cached range)
+      cache.invalidateOnWrite(6, 1, 5);
+      // The cached range should be gone
+      expect(cache.get(3, 1, 0, 10)).to.be.undefined;
+      cache.destroy();
+    });
+
+    it('should invalidate overlapping range on multi-register write', function () {
+      const cache = new RegisterCache({ enabled: true });
+      // Cache ranges: [0..4] and [10..14]
+      cache.set(3, 1, 0, 5, [10, 20, 30, 40, 50]);
+      cache.set(3, 1, 10, 5, [60, 70, 80, 90, 100]);
+      // Write to addresses 3..5 (overlaps with first range, not second)
+      cache.invalidateOnWrite(16, 1, 3, 3);
+      expect(cache.get(3, 1, 0, 5)).to.be.undefined;   // overlapping → invalidated
+      expect(cache.get(3, 1, 10, 5)).to.deep.equal([60, 70, 80, 90, 100]); // no overlap
+      cache.destroy();
+    });
+
+    it('should not invalidate range read from different unit on write', function () {
+      const cache = new RegisterCache({ enabled: true });
+      cache.set(3, 2, 0, 10, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+      // Write to unit 1, address 5 – should not touch unit 2's range
+      cache.invalidateOnWrite(6, 1, 5);
+      expect(cache.get(3, 2, 0, 10)).to.deep.equal([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+      cache.destroy();
+    });
   });
 
   // ── invalidateUnit ───────────────────────────────────────────────

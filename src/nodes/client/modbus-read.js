@@ -181,6 +181,7 @@ module.exports = function (RED) {
           }
         });
       }, node.pollInterval);
+      if (node._pollTimer.unref) node._pollTimer.unref();
       node.log(`Modbus Read: Polling every ${node.pollInterval}ms (FC ${node.fc} @ ${node._protocolAddress})`);
     }
 

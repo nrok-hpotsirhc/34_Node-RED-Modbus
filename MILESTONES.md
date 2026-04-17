@@ -218,8 +218,9 @@
 - **WP 5.4** – License compliance, npm registry, Node-RED Flow Library
 
 **Deliverables:**
-- [x] Complete test suite with >80% coverage – 532/532 tests passing, all security tests fixed
+- [x] Complete test suite with >80% coverage – 536/536 tests passing, all security tests fixed
 - [x] Code Review #4: 9 bug fixes and improvements (see CHANGELOG.md)
+- [x] Code Review #5: 7 fixes + 4 new tests (reconnect retry reset, NaN guard, cache range invalidation, disconnect timeout, poll/deferred unref, CRLF cert parse)
 - [x] Test certificate fixtures generated (`test/fixtures/certs/generate-certs.js`)
 - [x] Shared utility extracted (`src/lib/utils.js`) – DRY improvement
 - [ ] Leak tests verified for partial deploys
@@ -250,3 +251,4 @@
 | 2026-04-16 | MS-6 | Complete | Register cache with TTL, write invalidation (437 passing) |
 | 2026-04-16 | MS-7 | Complete | TLS wrapper, certificate validator, mTLS, credential UI (532 passing) |
 | 2026-04-17 | MS-8 | In Progress | Code Review #4: 9 fixes (LIFO double-done, TLS disconnect, destroy leak, timer cleanup, stopServer timeout, DRY parseIntSafe, poll throttle, unref timer, test cert generation). 532/532 tests passing |
+| 2026-04-17 | MS-8 | In Progress | Code Review #5: 7 fixes (reconnect retry reset, NaN guard, cache range invalidation, disconnect timeout, poll unref, deferred unref, CRLF cert parse). 4 new tests. 536/536 passing |

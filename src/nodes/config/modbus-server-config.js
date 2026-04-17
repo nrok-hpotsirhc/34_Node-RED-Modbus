@@ -457,6 +457,7 @@ module.exports = function (RED) {
         node.startServer();
       }
     }, 100);
+    if (node._startDeferred.unref) node._startDeferred.unref();
 
     // Cleanup on close
     node.on('close', function (done) {

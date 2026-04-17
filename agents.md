@@ -200,15 +200,16 @@ The complete document is at [docs/THEORETICAL_FOUNDATIONS.md](docs/THEORETICAL_F
 | Field | Value |
 |-------|-------|
 | Last updated | 2026-04-17 |
-| Test suite | 532 / 532 passing |
+| Test suite | 536 / 536 passing |
 | Active milestone | MS-8 – Quality Assurance & Release |
 | Next open deliverable | Leak tests for partial deploys (WP 5.2) |
 | Open items | `examples/flows/`, README.md, npm publish config, `npm pack` validation |
 | Known issues | None – all bugs from Code Review #4 resolved |
 
 ### MS-8 Deliverable Checklist
-- [x] 532/532 tests passing, all security certificate fixtures generated
+- [x] 536/536 tests passing, all security certificate fixtures generated
 - [x] Code Review #4 – 9 bugs fixed (LIFO double-done, TLS disconnect, destroy leak, timer cleanup, stopServer timeout, DRY parseIntSafe, poll throttle, unref timer, cert generation)
+- [x] Code Review #5 – 7 fixes (reconnect retry reset, NaN guard, cache range invalidation, disconnect timeout, poll/deferred unref, CRLF cert parse)
 - [ ] Leak tests for partial Node-RED deploys (WP 5.2)
 - [ ] Node-RED help sidebar texts for all 6 nodes
 - [ ] `examples/flows/` – at least 3 example flows (watchdog, RBE filter, bitwise)

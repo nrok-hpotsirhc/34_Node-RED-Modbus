@@ -4,6 +4,11 @@ const EventEmitter = require('events');
 const ModbusRTU = require('modbus-serial');
 
 /**
+ * Timeout in ms before forcing disconnect if close callback hangs.
+ */
+const DISCONNECT_TIMEOUT = 10000;
+
+/**
  * Modbus protocol limits per specification V1.1b3.
  */
 const MODBUS_LIMITS = {
@@ -200,7 +205,13 @@ class BaseTransport extends EventEmitter {
 
     try {
       await new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+          this._handleDisconnect();
+          resolve();
+        }, DISCONNECT_TIMEOUT);
+
         this._client.close((err) => {
+          clearTimeout(timer);
           if (err) reject(err);
           else resolve();
         });

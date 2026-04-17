@@ -240,11 +240,28 @@ class RegisterCache extends EventEmitter {
     }
 
     const num = count || 1;
+    const writeStart = address;
+    const writeEnd = address + num; // exclusive
+
+    // Invalidate exact-key matches for each written address
     for (let i = 0; i < num; i++) {
       const key = cacheKey(readFc, unitId, address + i);
       if (this._store.has(key)) {
         this._store.delete(key);
         this.emit('evict', { key, reason: 'write' });
+      }
+    }
+
+    // Invalidate any cached range reads that overlap the written range.
+    // A cached entry at [entry.address, entry.address + entry.quantity) overlaps
+    // if entry.address < writeEnd AND entry.address + entry.quantity > writeStart.
+    for (const [key, entry] of this._store) {
+      if (entry.fc === readFc && entry.unitId === unitId && entry.quantity > 1) {
+        const entryEnd = entry.address + entry.quantity;
+        if (entry.address < writeEnd && entryEnd > writeStart) {
+          this._store.delete(key);
+          this.emit('evict', { key, reason: 'write' });
+        }
       }
     }
   }

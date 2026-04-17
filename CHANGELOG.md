@@ -10,6 +10,15 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Changed
+- **Code Review #5: State Machine, Cache & Transport Hardening**
+  - Fix `connection-machine.js` reconnect retry reset: `reconnecting → connected` transition now calls `resetRetry` so subsequent failures get a fresh retry budget instead of continuing from where the last reconnect left off
+  - Fix `guards.js` NaN address rejection: `isValidRequest` now uses `Number.isFinite()` to reject NaN addresses (previously `NaN` passed `typeof === 'number'` and `NaN < 0 === false`)
+  - Fix `register-cache.js` range invalidation: `invalidateOnWrite()` now scans for cached range reads that overlap the written address range, preventing stale data when a write hits the middle of a previously cached batch read
+  - Add disconnect timeout in `base-transport.js`: `disconnect()` now has a 10s safety timeout preventing hung promises if `_client.close()` callback never fires
+  - Add `timer.unref()` to `modbus-read.js` poll interval timer and `modbus-server-config.js` deferred start timer
+  - Fix `certificate-validator.js` CRLF handling: `_parseOURoles()` now splits on `/\r?\n/` to handle Windows-style line endings in X.509 subjects
+
+### Changed
 - **Code Review #4: Security, Robustness & Code Quality**
   - Fix double `done()` call in `modbus-write.js` LIFO drop: drop event handler now only calls `done()` for FIFO drops (old items). LIFO drops are handled by the current input handler, preventing Node-RED message tracking corruption
   - Fix `tls-wrapper.js` `disconnect()` double-resolve: added `settled` guard and `clearTimeout` to prevent timeout from firing after socket close event, eliminating redundant `socket.destroy()` on already-closed sockets

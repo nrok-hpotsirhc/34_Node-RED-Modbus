@@ -292,7 +292,7 @@ const connectionMachine = setup({
       on: {
         SUCCESS: {
           target: 'connected',
-          actions: ['clearError']
+          actions: ['resetRetry', 'clearError']
         },
         FAILURE: {
           target: 'error',

@@ -49,7 +49,7 @@ function isValidRequest({ event }) {
   if (!event || !event.request) return false;
   const req = event.request;
   if (typeof req.operation !== 'string') return false;
-  if (typeof req.address !== 'number' || req.address < 0) return false;
+  if (typeof req.address !== 'number' || !Number.isFinite(req.address) || req.address < 0) return false;
   // Read operations need length, write operations need value(s)
   const hasLength = typeof req.length === 'number' && req.length > 0;
   const hasValue = req.value !== undefined || req.values !== undefined;
