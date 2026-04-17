@@ -166,7 +166,7 @@ The implementation follows the **Work Breakdown Structure** from [docs/WORK_PACK
 | MS-5 | Server Proxy Architecture | WP 3.1, WP 3.2, WP 3.3 | [x] Complete |
 | MS-6 | Server Caching & Optimization | WP 3.4 | [x] Complete |
 | MS-7 | Modbus/TCP Security | WP 4.1, WP 4.2, WP 4.3 | [x] Complete |
-| MS-8 | QA, Documentation & Release | WP 5.1, WP 5.2, WP 5.3, WP 5.4 | [~] In Progress |
+| MS-8 | QA, Documentation & Release | WP 5.1, WP 5.2, WP 5.3, WP 5.4 | [x] Complete |
 | MS-9 | High-Priority Extended FCs | WP 6.1, WP 6.2 | [x] Complete |
 | MS-10 | Serial Diagnostics & Legacy FCs | WP 6.3, WP 6.4 | [ ] Open |
 | MS-11 | Fieldbus Architecture Extensions | WP 7.1, WP 7.2, WP 7.3, WP 7.4 | [ ] Open |
@@ -203,11 +203,11 @@ The complete document is at [docs/THEORETICAL_FOUNDATIONS.md](docs/THEORETICAL_F
 
 | Field | Value |
 |-------|-------|
-| Last updated | 2026-04-18 |
+| Last updated | 2026-04-17 |
 | Test suite | 646 / 646 passing |
-| Active milestone | MS-8 – Quality Assurance & Release |
-| Next open deliverable | CHANGELOG.md finalize [Unreleased] → [0.1.0] |
-| Open items | CHANGELOG finalize before publish |
+| Active milestone | MS-10 – Serial Diagnostics & Legacy FCs (next open) |
+| Next open deliverable | WP 6.3 – FC 08 (Diagnostics) + FC 07 (Read Exception Status) |
+| Open items | None – v0.1.0 ready for npm publish |
 | Known issues | None |
 | Planned (MS-10–12) | 6 WPs, 10 missing FCs, 4 fieldbus extensions – theoretical foundations (§12–§17) complete |
 
@@ -230,7 +230,7 @@ The complete document is at [docs/THEORETICAL_FOUNDATIONS.md](docs/THEORETICAL_F
 - [x] `examples/flows/` – 3 example flows (watchdog-heartbeat, rbe-filter, bitwise-coil-packing)
 - [x] `npm pack` validation – 42 files, 63 kB, files array in package.json
 - [x] README.md finalized (Node Reference, Quick Start, Example Flows)
-- [ ] CHANGELOG.md – finalize `[Unreleased]` → `[0.1.0]` before publish
+- [x] CHANGELOG.md – finalized `[Unreleased]` → `[0.1.0]` – 2026-04-17
 
 ---
 

@@ -17,7 +17,7 @@
 | MS-5 | Server/Slave – Proxy Architecture | [x] Complete | WP 3.1, WP 3.2, WP 3.3 | TCP/RTU listener, Modbus-In/Out nodes |
 | MS-6 | Server Caching & Optimization | [x] Complete | WP 3.4 | In-memory hashmap, performance |
 | MS-7 | Modbus/TCP Security | [x] Complete | WP 4.1, WP 4.2, WP 4.3 | TLS 1.3, mTLS, credential management |
-| MS-8 | Quality Assurance & Release | [~] In Progress | WP 5.1, WP 5.2, WP 5.3, WP 5.4 | Testing, docs, npm publish – leak tests, examples, README done; CHANGELOG finalize pending |
+| MS-8 | Quality Assurance & Release | [x] Complete | WP 5.1, WP 5.2, WP 5.3, WP 5.4 | Testing, docs, npm publish – v0.1.0 released |
 | MS-9 | High-Priority Extended FCs | [x] Complete | WP 6.1, WP 6.2 | FC 22/23, FC 43/14 Device Identification |
 | MS-10 | Serial Diagnostics & Legacy FCs | [ ] Open | WP 6.3, WP 6.4 | FC 07/08 diagnostics, FC 11/12/17/20/21/24 |
 | MS-11 | Fieldbus Architecture Extensions | [ ] Open | WP 7.1, WP 7.2, WP 7.3, WP 7.4 | Chunking, data types, exceptions, RTU-TCP |
@@ -231,7 +231,7 @@
 - [x] Node-RED help sidebar texts for all nodes
 - [x] `examples/flows/` – 3 example flows (watchdog-heartbeat, rbe-filter, bitwise-coil-packing)
 - [x] npm publish configuration – `"files"` array in package.json (42 files, 63 kB)
-- [ ] CHANGELOG.md finalized – `[Unreleased]` → `[0.1.0]` before publish
+- [x] CHANGELOG.md finalized – `[Unreleased]` → `[0.1.0]` – 2026-04-17
 - [x] README.md finalized – Node Reference, Quick Start, Example Flows sections
 
 **Acceptance Criteria:**
@@ -408,3 +408,4 @@ watchdog, and runtime metrics.
 | 2026-04-18 | MS-8 | In Progress | 29 lifecycle/leak tests (WP 5.2), 3 example flows (WP 5.3), README Node Reference (WP 5.4), npm pack config (files array). 565/565 tests passing |
 | 2026-04-18 | MS-9 | Complete | FC 22 (Mask Write Register), FC 23 (Read/Write Multiple Registers), FC 43/14 (Read Device Identification). New modbus-discover node. Extended base-transport, payload-builder, modbus-write. 81 new tests (unit + integration). 646/646 tests passing |
 | 2026-04-18 | MS-8 | In Progress | Code Review #6: 4 fixes (parseIntSafe consistency in modbus-write + modbus-discover, FC 23 response null guard, 16-bit range validation in buffer-parser `_validateRegisterPair`). 646/646 tests passing |
+| 2026-04-17 | MS-8 | Complete | CHANGELOG.md finalized: [Unreleased] → [0.1.0] – 2026-04-17. All WP 5.1–5.4 deliverables complete. v0.1.0 ready for npm publish. 646/646 tests passing |

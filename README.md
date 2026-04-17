@@ -12,7 +12,7 @@
 
 ## Development Progress
 
-> **Current State (2026-04-18):** MS-9 complete – FC 22 (Mask Write), FC 23 (Read/Write Multiple), FC 43/14 (Device Identification) fully implemented and tested. 646/646 tests passing. MS-8 (QA & Release) in progress – CHANGELOG finalize pending. New modbus-discover node for device identification.
+> **Current State (2026-04-17):** v0.1.0 released – all 11 function codes (FC 01–06, 15, 16, 22, 23, 43/14) implemented and tested. 646/646 tests passing. 7 Node-RED nodes. MS-8 (QA & Release) and MS-9 (Extended FCs) complete.
 
 | # | Milestone | Status | Progress |
 |---|-----------|--------|----------|
@@ -23,13 +23,13 @@
 | MS-5 | Server/Slave – Proxy Architecture | ✅ Complete | `██████████` 100 % |
 | MS-6 | Server Caching & Optimization | ✅ Complete | `██████████` 100 % |
 | MS-7 | Modbus/TCP Security | ✅ Complete | `██████████` 100 % |
-| MS-8 | Quality Assurance & Release | 🔄 In Progress | `████████░░` 80 % |
+| MS-8 | Quality Assurance & Release | ✅ Complete | `██████████` 100 % |
 | MS-9 | High-Priority Extended FCs | ✅ Complete | `██████████` 100 % |
 | MS-10 | Serial Diagnostics & Legacy FCs | 🔲 Open | `░░░░░░░░░░` 0 % |
 | MS-11 | Fieldbus Architecture Extensions | 🔲 Open | `░░░░░░░░░░` 0 % |
 | MS-12 | Advanced Fieldbus Nodes | 🔲 Open | `░░░░░░░░░░` 0 % |
 
-**Overall Progress: 8 / 12 milestones completed – 646 / 646 tests passing**
+**Overall Progress: 9 / 12 milestones completed – 646 / 646 tests passing**
 
 > Milestone details: [MILESTONES.md](MILESTONES.md) · Work packages: [docs/WORK_PACKAGES.md](docs/WORK_PACKAGES.md)
 

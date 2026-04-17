@@ -9,6 +9,10 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+---
+
+## [0.1.0] – 2026-04-17
+
 ### Added
 - **FC 22 – Mask Write Register (WP 6.1)** – Atomic AND/OR bitmask operation on a single holding register. Extended `modbus-write` node with FC 22 support including validation, transport method, and UI.
 - **FC 23 – Read/Write Multiple Registers (WP 6.1)** – Combined write + read in a single PDU. Extended `modbus-write` node with FC 23 support including `readAddress`/`readQuantity` config fields, conditional UI visibility, and `buildReadWritePayload()` in payload builder.
@@ -244,3 +248,8 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 - All documentation translated from German to English
 - Documentation files renamed to English (e.g. ARBEITSPAKETE.md → WORK_PACKAGES.md)
+
+---
+
+[Unreleased]: https://github.com/weidmueller/node-red-contrib-modbus-pro/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/weidmueller/node-red-contrib-modbus-pro/releases/tag/v0.1.0
