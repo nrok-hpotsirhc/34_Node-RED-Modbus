@@ -68,24 +68,34 @@
     <h3>Configuration</h3>
     <dl class="message-properties">
         <dt>Server <span class="property-type">config node</span></dt>
-        <dd>Select the Modbus server configuration node that defines the TCP listener.</dd>
-        <dt>Function Code <span class="property-type">select</span></dt>
+        <dd>The Modbus server configuration that defines the TCP listener.</dd>
+        <dt>Function Code Filter <span class="property-type">select</span></dt>
         <dd>
-            Filter incoming requests by function code. Select "All Function Codes" to receive
-            all requests, or choose a specific FC to only receive matching requests.
+            Filter incoming requests by function code. Select <b>All Function Codes</b> to receive
+            every request, or choose a specific FC to only receive matching requests.
+            <table>
+                <tr><td>FC 01–04</td><td>Read requests (Coils, Discrete Inputs, Holding/Input Registers)</td></tr>
+                <tr><td>FC 05, 06</td><td>Write single (Coil, Register)</td></tr>
+                <tr><td>FC 15, 16</td><td>Write multiple (Coils, Registers)</td></tr>
+            </table>
         </dd>
         <dt>Unit ID Filter <span class="property-type">select</span></dt>
         <dd>
-            Filter incoming requests by unit ID. Select "All Unit IDs" to receive requests
-            for any unit, or specify a unit ID to filter.
+            Filter by unit ID. Select <b>All Unit IDs</b> to receive requests for any
+            unit, or specify a unit ID to filter. Multiple <b>modbus-in</b> nodes
+            with different filters can share the same server config.
         </dd>
     </dl>
 
     <h3>Output</h3>
     <dl class="message-properties">
+        <dt>topic <span class="property-type">string</span></dt>
+        <dd>Auto-generated topic: <code>modbus:server:{requestType}</code></dd>
         <dt>payload <span class="property-type">object</span></dt>
-        <dd>Structured request object containing:</dd>
+        <dd>Structured request object.</dd>
     </dl>
+
+    <h4>Read Request (FC 01–04)</h4>
     <pre>{
   "type": "readHoldingRegisters",
   "fc": 3,
@@ -94,7 +104,8 @@
   "unitId": 1,
   "requestId": "uuid-v4"
 }</pre>
-    <p>For write requests, <code>quantity</code> is replaced by <code>value</code>:</p>
+
+    <h4>Write Request (FC 05, 06, 15, 16)</h4>
     <pre>{
   "type": "writeSingleRegister",
   "fc": 6,
@@ -104,21 +115,63 @@
   "requestId": "uuid-v4"
 }</pre>
 
+    <dl class="message-properties">
+        <dt>payload.type <span class="property-type">string</span></dt>
+        <dd>Human-readable request type, e.g. <code>readHoldingRegisters</code>, <code>writeSingleCoil</code>.</dd>
+        <dt>payload.fc <span class="property-type">number</span></dt>
+        <dd>Modbus function code (1–16).</dd>
+        <dt>payload.address <span class="property-type">number</span></dt>
+        <dd>Zero-based starting address.</dd>
+        <dt>payload.quantity <span class="property-type">number</span></dt>
+        <dd>Number of items requested (read requests only).</dd>
+        <dt>payload.value <span class="property-type">number | boolean | array</span></dt>
+        <dd>Value(s) to write (write requests only).</dd>
+        <dt>payload.unitId <span class="property-type">number</span></dt>
+        <dd>Target unit/slave ID.</dd>
+        <dt>payload.requestId <span class="property-type">string</span></dt>
+        <dd><b>Critical:</b> Unique request ID that must be passed to <b>modbus-out</b> for the response.
+            If not returned within the response timeout, a Modbus exception 0x0B is sent automatically.</dd>
+    </dl>
+
+    <h3>Status Indicators</h3>
+    <table>
+        <tr><td>🟢 green/dot</td><td>Server listening, ready for requests</td></tr>
+        <tr><td>🔵 blue/dot</td><td>Processing a request – shows FC and address</td></tr>
+        <tr><td>🔴 red/ring</td><td>No server config selected or server config invalid</td></tr>
+        <tr><td>🔴 red/dot</td><td>Server stopped</td></tr>
+        <tr><td>⚪ grey/dot</td><td>Waiting for server to start</td></tr>
+    </table>
+
     <h3>Details</h3>
     <p>
-        The <b>modbus-in</b> node is the entry point for the Dynamic Server Proxy pattern.
+        The <b>modbus-in</b> node is the entry point for the <b>Dynamic Server Proxy</b> pattern.
         When an external Modbus client sends a request to the server, this node captures it
-        and outputs a structured message containing all request details.
+        and emits a structured message. Connect it to a function node or other logic, then
+        send the result to a <b>modbus-out</b> node to complete the response.
     </p>
     <p>
-        <b>Important:</b> The <code>requestId</code> in the payload must be preserved and
-        passed to a <b>modbus-out</b> node to send the response back to the client.
-        If no response is sent within the configured timeout, a Modbus error response
-        (0x0B – Gateway Target Device Failed To Respond) is automatically returned.
+        <b>Request timeout:</b> If no response is sent within the configured response timeout
+        (set on the server config node), a Modbus exception 0x0B (Gateway Target Device Failed
+        To Respond) is automatically returned to the client.
     </p>
-    <p>
-        <b>Filtering:</b> Use the function code and unit ID filters to create specialized
-        handlers for different types of requests. Multiple modbus-in nodes can be connected
-        to the same server config node with different filters.
-    </p>
+
+    <h3>Example</h3>
+    <pre>[modbus-in] → [function] → [modbus-out]
+
+// In the function node:
+const fc = msg.payload.fc;
+const addr = msg.payload.address;
+const qty = msg.payload.quantity;
+
+// Look up your data source and build response
+msg.payload = {
+    requestId: msg.payload.requestId,
+    data: getRegisters(addr, qty)
+};
+return msg;</pre>
+
+    <h3>References</h3>
+    <ul>
+        <li><a href="https://modbus.org/specs.php">Modbus Application Protocol V1.1b3</a></li>
+    </ul>
 </script>

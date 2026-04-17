@@ -203,11 +203,11 @@ The complete document is at [docs/THEORETICAL_FOUNDATIONS.md](docs/THEORETICAL_F
 
 | Field | Value |
 |-------|-------|
-| Last updated | 2026-04-17 |
+| Last updated | 2026-04-18 |
 | Test suite | 536 / 536 passing |
 | Active milestone | MS-8 – Quality Assurance & Release |
 | Next open deliverable | Leak tests for partial deploys (WP 5.2) |
-| Open items | `examples/flows/`, README.md, npm publish config, `npm pack` validation |
+| Open items | Leak tests, `examples/flows/`, README.md, npm publish config, `npm pack` validation |
 | Known issues | None – all bugs from Code Review #5 resolved |
 | Planned (MS-9–12) | 8 new WPs, 13 missing FCs, 4 fieldbus extensions – theoretical foundations (§12–§17) complete |
 
@@ -217,7 +217,7 @@ The complete document is at [docs/THEORETICAL_FOUNDATIONS.md](docs/THEORETICAL_F
 - [x] Code Review #5 – 7 fixes (reconnect retry reset, NaN guard, cache range invalidation, disconnect timeout, poll/deferred unref, CRLF cert parse)
 - [x] Theoretical Foundations §12–§17 elaborated for MS-9–MS-12 (extended FCs, exception handling, chunking, data types, RTU-over-TCP, RBE, scan scheduling, watchdog, metrics)
 - [ ] Leak tests for partial Node-RED deploys (WP 5.2)
-- [ ] Node-RED help sidebar texts for all 6 nodes
+- [x] Node-RED help sidebar texts for all 6 nodes
 - [ ] `examples/flows/` – at least 3 example flows (watchdog, RBE filter, bitwise)
 - [ ] `npm pack` validation – verify package contents
 - [ ] README.md finalized (installation, quick start, node reference)

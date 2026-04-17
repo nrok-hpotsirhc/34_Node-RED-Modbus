@@ -135,7 +135,7 @@
 <script type="text/html" data-help-name="modbus-server-config">
     <p>Configuration node for the Modbus TCP server (slave/listener).</p>
     <p>
-        This node creates a TCP listener that accepts incoming Modbus requests from
+        Creates a TCP listener that accepts incoming Modbus requests from
         external clients and forwards them into the Node-RED flow via <b>modbus-in</b> nodes.
         Responses are sent back when <b>modbus-out</b> nodes provide the data.
     </p>
@@ -149,19 +149,18 @@
         <dt>Unit ID <span class="property-type">number</span></dt>
         <dd>
             Modbus unit/slave ID to respond to. Set to <code>255</code> to accept requests
-            for any unit ID. Range: 0–255.
+            for any unit ID. Range: 0–255. Default: <code>255</code>
         </dd>
         <dt>Response Timeout <span class="property-type">number</span></dt>
         <dd>
             Maximum time in milliseconds to wait for a response from the flow before
-            sending an error response (0x0B – Gateway Target Device Failed To Respond).
-            Default: <code>5000</code>.
+            sending a Modbus exception response (0x0B – Gateway Target Device Failed To Respond).
+            Default: <code>5000</code>
         </dd>
     </dl>
 
-    <h3>Architecture</h3>
+    <h3>Architecture – Dynamic Server Proxy</h3>
     <p>
-        The server config node implements the <b>Dynamic Server Proxy</b> pattern.
         Instead of pre-allocating static memory arrays for the entire Modbus address space,
         incoming requests are published as events. This enables:
     </p>
@@ -169,60 +168,73 @@
         <li>No wasted memory for unused address ranges</li>
         <li>Dynamic data sources (APIs, databases, sensors) as Modbus registers</li>
         <li>Full flow-based control over response logic</li>
+        <li>Multiple <b>modbus-in</b> nodes with different FC/unit ID filters on the same server</li>
     </ul>
 
     <h3>Response Cache</h3>
     <p>
-        When enabled, the cache stores responses from the flow in an in-memory hashmap
-        keyed by function code, unit ID, and address. Subsequent read requests for the
-        same data are answered directly from the cache without traversing the flow,
-        significantly reducing latency for recurring reads.
+        When enabled, the cache stores responses in an in-memory hashmap keyed by
+        function code, unit ID, and address range. Subsequent read requests for the
+        same data are answered directly from the cache without traversing the flow.
     </p>
     <dl class="message-properties">
         <dt>Enable Cache <span class="property-type">boolean</span></dt>
-        <dd>Activate or deactivate the response cache.</dd>
+        <dd>Activate the response cache. Default: <code>false</code></dd>
         <dt>Cache TTL <span class="property-type">number</span></dt>
         <dd>
-            Time-to-live in milliseconds for each cached entry. After this time,
-            the entry is considered stale and the next request will be forwarded to the flow.
-            Set to <code>0</code> for no automatic expiration. Default: <code>60000</code> (60 seconds).
+            Time-to-live per cache entry in milliseconds. After this time, the entry
+            expires and the next request is forwarded to the flow. Default: <code>60000</code> (60 s).
         </dd>
         <dt>Max Cache Size <span class="property-type">number</span></dt>
         <dd>
-            Maximum number of entries in the cache. When full, the oldest entry is
-            evicted to make room. Default: <code>10000</code>.
+            Maximum number of entries. When full, the oldest entry is evicted.
+            Default: <code>10000</code>
         </dd>
     </dl>
     <p>
         <b>Write invalidation:</b> When a write operation (FC 05/06/15/16) is received,
-        all cached read entries at the affected addresses are automatically invalidated.
+        all cached read entries at the affected address range are automatically invalidated.
     </p>
 
     <h3>Modbus/TCP Security (TLS)</h3>
     <p>
-        When enabled, the server listens on a TLS-secured port as per the Modbus/TCP
-        Security specification. This provides encrypted communication and mutual
-        authentication (mTLS) using X.509v3 certificates.
+        When enabled, the server uses a TLS-secured listener as per the Modbus/TCP
+        Security specification. Supports TLS 1.2/1.3 and mutual authentication (mTLS).
     </p>
     <dl class="message-properties">
         <dt>Enable TLS <span class="property-type">boolean</span></dt>
-        <dd>Activate TLS for the server listener.</dd>
+        <dd>Activate TLS for the server listener. Default: <code>false</code></dd>
         <dt>CA Certificate <span class="property-type">string</span></dt>
-        <dd>File path to the CA certificate (PEM format) for verifying client certificates.</dd>
+        <dd>File path to the CA certificate (PEM) for verifying client certificates.</dd>
         <dt>Server Certificate <span class="property-type">string</span></dt>
-        <dd>File path to the server certificate (PEM format) presented to connecting clients.</dd>
+        <dd>File path to the server certificate (PEM) presented to connecting clients.</dd>
         <dt>Server Private Key <span class="property-type">string</span></dt>
-        <dd>File path to the server private key (PEM format).</dd>
+        <dd>File path to the server private key (PEM).</dd>
         <dt>Key Passphrase <span class="property-type">string</span></dt>
         <dd>Optional passphrase for encrypted private keys.</dd>
         <dt>Verify Clients <span class="property-type">boolean</span></dt>
         <dd>
-            When enabled (default), connecting clients must present a valid certificate
-            signed by the configured CA. This enables mutual TLS (mTLS) authentication.
+            Require connecting clients to present a valid certificate signed by
+            the configured CA (mTLS). Default: <code>true</code>
         </dd>
     </dl>
+
+    <h3>Status Indicators</h3>
+    <table>
+        <tr><td>🟢 green/dot</td><td>Server listening and operational</td></tr>
+        <tr><td>🔴 red/dot</td><td>Server stopped or failed to start</td></tr>
+        <tr><td>🔴 red/ring</td><td>Configuration error (missing TLS certs, port conflict)</td></tr>
+        <tr><td>⚪ grey/dot</td><td>Initializing</td></tr>
+    </table>
+
+    <h3>Security</h3>
     <p>
-        <b>Security note:</b> Certificate file paths are stored in the Node-RED credential store
-        and never in <code>flow.json</code>. Private keys and passphrases are encrypted.
+        Certificate file paths are stored in the Node-RED <b>credential store</b> and
+        never written to <code>flow.json</code>. Private keys and passphrases are encrypted at rest.
     </p>
+
+    <h3>References</h3>
+    <ul>
+        <li><a href="https://modbus.org/specs.php">Modbus/TCP Security Protocol Specification</a></li>
+    </ul>
 </script>

@@ -228,7 +228,7 @@
 - [x] Test certificate fixtures generated (`test/fixtures/certs/generate-certs.js`)
 - [x] Shared utility extracted (`src/lib/utils.js`) – DRY improvement
 - [ ] Leak tests verified for partial deploys
-- [ ] Node-RED help sidebar texts for all nodes
+- [x] Node-RED help sidebar texts for all nodes
 - [ ] `examples/flows/` with examples (watchdog, RBE filter, bitwise stuffing)
 - [ ] npm publish configuration
 - [ ] CHANGELOG.md finalized
@@ -404,3 +404,4 @@ watchdog, and runtime metrics.
 | 2026-04-17 | MS-8 | In Progress | Code Review #5: 7 fixes (reconnect retry reset, NaN guard, cache range invalidation, disconnect timeout, poll unref, deferred unref, CRLF cert parse). 4 new tests. 536/536 passing |
 | 2026-04-17 | MS-9 – MS-12 | Planned | FC gap analysis: 13 missing FCs identified; 8 new WPs (6.1–7.8) and 4 new milestones (MS-9–MS-12) added to planning documents |
 | 2026-04-17 | MS-9 – MS-12 | Planned | Theoretical Foundations §12–§17 elaborated: extended FC PDU structures, exception responses, request chunking, extended data types (Float64/Int64/BCD/String/DateTime), RTU-over-TCP, industrial patterns (RBE, scan scheduling, watchdog, metrics). All WP and milestone theory references updated |
+| 2026-04-18 | MS-8 | In Progress | Node-RED help sidebar texts enhanced for all 6 nodes (modbus-client-config, modbus-server-config, modbus-read, modbus-write, modbus-in, modbus-out). Added status indicators, error behavior, references, default values. 536/536 tests passing |

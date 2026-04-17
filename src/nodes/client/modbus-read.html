@@ -115,38 +115,40 @@
     <h3>Configuration</h3>
     <dl class="message-properties">
         <dt>Server <span class="property-type">config node</span></dt>
-        <dd>Select the Modbus client configuration node that defines the connection.</dd>
+        <dd>The Modbus client configuration that defines the connection parameters.</dd>
         <dt>Function Code <span class="property-type">select</span></dt>
         <dd>
-            <ul>
-                <li><b>FC 01</b> – Read Coils (boolean outputs)</li>
-                <li><b>FC 02</b> – Read Discrete Inputs (boolean inputs)</li>
-                <li><b>FC 03</b> – Read Holding Registers (read/write 16-bit)</li>
-                <li><b>FC 04</b> – Read Input Registers (read-only 16-bit)</li>
-            </ul>
+            <table>
+                <tr><td><b>FC 01</b></td><td>Read Coils (boolean outputs, max 2000)</td></tr>
+                <tr><td><b>FC 02</b></td><td>Read Discrete Inputs (boolean inputs, max 2000)</td></tr>
+                <tr><td><b>FC 03</b></td><td>Read Holding Registers (read/write 16-bit, max 125)</td></tr>
+                <tr><td><b>FC 04</b></td><td>Read Input Registers (read-only 16-bit, max 125)</td></tr>
+            </table>
         </dd>
         <dt>Start Address <span class="property-type">number</span></dt>
-        <dd>The starting address to read from. Interpretation depends on the Address Mode setting.</dd>
+        <dd>Starting register or coil address. Default: <code>0</code>. Interpretation depends on Address Mode.</dd>
         <dt>Quantity <span class="property-type">number</span></dt>
-        <dd>Number of coils/registers to read. Max: 2000 for coils, 125 for registers.</dd>
+        <dd>Number of coils or registers to read. Max: 2000 for coils (FC 01/02), 125 for registers (FC 03/04). Default: <code>1</code></dd>
         <dt>Address Mode <span class="property-type">select</span></dt>
         <dd>
-            <b>Zero-based:</b> Address is used as-is (protocol level). Address 0 = first register.<br>
-            <b>One-based:</b> Datasheet convention. Address 40001 refers to the first holding register (protocol offset 0). The node automatically subtracts 1.
+            <b>Zero-based (protocol):</b> Address is used directly. Address 0 = first register.<br>
+            <b>One-based (datasheet):</b> Datasheet convention (e.g. 40001). The node subtracts 1 automatically.
         </dd>
         <dt>Poll Interval <span class="property-type">number</span></dt>
         <dd>
-            Polling interval in milliseconds. Set to <code>0</code> for trigger-based operation (reads only when a message arrives at the input).
+            Automatic polling interval in milliseconds. Set to <code>0</code> for trigger-only
+            mode (reads only when a message arrives). Max: 86400000 (24 h). Default: <code>0</code>
         </dd>
     </dl>
 
     <h3>Input</h3>
-    <p>Any incoming message triggers a read operation. The message topic is preserved in the output.</p>
+    <p>Any incoming message triggers a read operation. The message content is ignored; only
+       <code>msg.topic</code> is preserved in the output.</p>
 
     <h3>Output</h3>
     <dl class="message-properties">
         <dt>payload <span class="property-type">object</span></dt>
-        <dd>Standardized payload object containing:</dd>
+        <dd>Standardized response object:</dd>
     </dl>
     <pre>{
   "data": [1234, 5678],
@@ -159,20 +161,62 @@
   "timestamp": "2026-04-16T10:00:00.000Z",
   "connection": "tcp://192.168.1.100:502"
 }</pre>
+    <dl class="message-properties">
+        <dt>payload.data <span class="property-type">number[] | boolean[]</span></dt>
+        <dd>Array of register values (FC 03/04) or coil states (FC 01/02).</dd>
+        <dt>payload.buffer <span class="property-type">Buffer</span></dt>
+        <dd>Raw response bytes for custom parsing (endianness conversion, Float32, etc.).</dd>
+        <dt>payload.fc <span class="property-type">number</span></dt>
+        <dd>Function code used for this read.</dd>
+        <dt>payload.address <span class="property-type">number</span></dt>
+        <dd>Zero-based protocol address that was read.</dd>
+        <dt>payload.quantity <span class="property-type">number</span></dt>
+        <dd>Number of items actually read.</dd>
+        <dt>payload.unitId <span class="property-type">number</span></dt>
+        <dd>Modbus unit ID of the target device.</dd>
+        <dt>payload.timestamp <span class="property-type">string</span></dt>
+        <dd>ISO 8601 timestamp of the response.</dd>
+        <dt>payload.connection <span class="property-type">string</span></dt>
+        <dd>Connection identifier, e.g. <code>tcp://192.168.1.100:502</code> or <code>rtu:///dev/ttyUSB0</code>.</dd>
+    </dl>
+    <dl class="message-properties">
+        <dt>modbusRead <span class="property-type">object</span></dt>
+        <dd>Metadata: <code>fc</code>, <code>address</code>, <code>protocolAddress</code>,
+            <code>quantity</code>, <code>unitId</code>, <code>addressOffset</code>.</dd>
+    </dl>
+
+    <h3>Status Indicators</h3>
+    <table>
+        <tr><td>🟢 green/dot</td><td>Last read successful – shows register count and address</td></tr>
+        <tr><td>🔵 blue/dot</td><td>Read in progress</td></tr>
+        <tr><td>🔴 red/ring</td><td>Error (timeout, transport not connected, invalid FC)</td></tr>
+        <tr><td>⚪ grey/dot</td><td>Ready, waiting for trigger or first poll</td></tr>
+    </table>
+
+    <h3>Error Behavior</h3>
+    <ul>
+        <li><b>Transport not connected:</b> Error is reported via <code>node.error()</code> and the catch node.</li>
+        <li><b>Timeout:</b> The configured timeout (from the config node) applies. On timeout, the read fails with an error.</li>
+        <li><b>Overlapping reads:</b> If a poll fires while a previous read is still in progress, the poll is skipped with a warning.</li>
+        <li><b>Repeated poll errors:</b> Identical consecutive errors are throttled to avoid flooding the debug log.</li>
+    </ul>
 
     <h3>Details</h3>
     <p>
-        The <b>modbus-read</b> node reads data from a Modbus device through the configured client connection.
-        It supports all four read function codes (FC 01–04) and provides a standardized output payload
-        enriched with metadata.
+        <b>Address Offset:</b> Modbus uses zero-based addressing at the protocol level, but
+        device datasheets use one-based notation with type prefixes (e.g. 40001 = first holding
+        register). Use "One-based" mode to enter addresses as shown in your datasheet – the
+        node converts automatically.
     </p>
     <p>
-        <b>Address Offset:</b> Modbus uses zero-based addressing at the protocol level, but device datasheets
-        typically use one-based addressing with type prefixes (e.g., 40001 for the first holding register).
-        Use the "One-based" mode to enter addresses as shown in your device datasheet.
+        <b>Polling vs. Trigger:</b> With <code>pollInterval &gt; 0</code>, the node polls automatically.
+        With <code>pollInterval = 0</code>, it reads only when a message arrives at the input.
+        Both modes can be combined: the poll runs on its interval, and additional reads are
+        triggered by incoming messages.
     </p>
-    <p>
-        <b>Polling:</b> Set a poll interval > 0 to enable automatic periodic reads. Set to 0 to only
-        read when triggered by an incoming message.
-    </p>
+
+    <h3>References</h3>
+    <ul>
+        <li><a href="https://modbus.org/specs.php">Modbus Application Protocol V1.1b3</a> – FC 01–04 specification</li>
+    </ul>
 </script>

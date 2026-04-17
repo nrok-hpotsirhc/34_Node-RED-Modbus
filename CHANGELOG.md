@@ -9,6 +9,16 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **Node-RED Help Sidebar Texts** – Comprehensive help documentation for all 6 nodes:
+  - `modbus-client-config`: TCP/RTU settings, TLS/mTLS configuration, connection lifecycle, credential handling
+  - `modbus-server-config`: Dynamic Server Proxy architecture, cache configuration, TLS, status indicators
+  - `modbus-read`: FC 01–04 table, address mode, poll interval, full output payload fields, error behavior
+  - `modbus-write`: FC 05/06/15/16 input formats, backpressure queue, drop strategies, status indicators
+  - `modbus-in`: Request structure (read/write), requestId lifecycle, FC/unit ID filtering, example flow
+  - `modbus-out`: Success/error response format, Modbus exception code table (0x01–0x0B), timeout behavior
+  - All nodes now include: status indicator tables, error behavior sections, and Modbus specification references
+
 ### Fixed (Code Review Pass)
 - **modbus-server-config:** Added `setCoilArray` (FC 15) and `setRegisterArray` (FC 16) to the modbus-serial vector so multi-write requests are proxied as a single `modbusRequest` event with the full array payload, and cache invalidation receives the correct `count`. Previously FC 15/16 fell back to per-address loops.
 - **state-machine/guards:** `isValidRequest` now enforces `address ≤ 0xFFFF` (upper bound) and requires an integer `length` between 1 and 2000; it also rejects empty `operation` strings. Prevents malformed requests from reaching the transport.

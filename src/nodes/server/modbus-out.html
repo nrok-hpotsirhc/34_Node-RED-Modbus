@@ -35,17 +35,18 @@
     <h3>Configuration</h3>
     <dl class="message-properties">
         <dt>Server <span class="property-type">config node</span></dt>
-        <dd>Select the Modbus server configuration node (must match the modbus-in node).</dd>
+        <dd>The Modbus server configuration (must match the <b>modbus-in</b> node's server).</dd>
     </dl>
 
     <h3>Input</h3>
-    <p>The incoming message must contain a <code>msg.payload</code> object with:</p>
+    <p>The incoming <code>msg.payload</code> must contain the <code>requestId</code> from
+       the original <b>modbus-in</b> message and either response data or an error object.</p>
 
     <h4>Success Response</h4>
     <dl class="message-properties">
         <dt>payload.requestId <span class="property-type">string</span></dt>
-        <dd>The request ID from the original modbus-in message. <b>Required.</b></dd>
-        <dt>payload.data <span class="property-type">array | number | boolean</span></dt>
+        <dd>The request ID from the original <b>modbus-in</b> message. <b>Required.</b></dd>
+        <dt>payload.data <span class="property-type">number[] | boolean[] | number</span></dt>
         <dd>The response data to send back to the Modbus client.</dd>
     </dl>
     <pre>{
@@ -54,12 +55,14 @@
 }</pre>
 
     <h4>Error Response</h4>
-    <p>To send a Modbus error/exception response:</p>
+    <p>To send a Modbus exception response, include an <code>error</code> object instead of <code>data</code>:</p>
     <dl class="message-properties">
         <dt>payload.requestId <span class="property-type">string</span></dt>
-        <dd>The request ID from the original modbus-in message.</dd>
-        <dt>payload.error <span class="property-type">object</span></dt>
-        <dd>An error object with optional <code>modbusErrorCode</code> (default: 0x04 – Slave Device Failure).</dd>
+        <dd>The request ID from the original <b>modbus-in</b> message.</dd>
+        <dt>payload.error.message <span class="property-type">string</span></dt>
+        <dd>Human-readable error description (logged, not sent to client).</dd>
+        <dt>payload.error.modbusErrorCode <span class="property-type">number</span></dt>
+        <dd>Modbus exception code to send. Default: <code>0x04</code> (Slave Device Failure).</dd>
     </dl>
     <pre>{
   "requestId": "uuid-from-modbus-in",
@@ -70,37 +73,38 @@
 }</pre>
 
     <h3>Output</h3>
-    <p>The original message is forwarded to the output for chaining or logging.</p>
+    <p>The original message is forwarded to the output for chaining, logging, or confirmation flows.</p>
 
-    <h3>Modbus Error Codes</h3>
-    <dl>
-        <dt>0x01 – Illegal Function</dt>
-        <dd>The function code is not supported.</dd>
-        <dt>0x02 – Illegal Data Address</dt>
-        <dd>The requested address is not available.</dd>
-        <dt>0x03 – Illegal Data Value</dt>
-        <dd>The request contains an invalid value.</dd>
-        <dt>0x04 – Slave Device Failure</dt>
-        <dd>An unrecoverable error occurred (default for flow errors).</dd>
-        <dt>0x0B – Gateway Target Device Failed To Respond</dt>
-        <dd>The response timed out (sent automatically by the server config).</dd>
-    </dl>
+    <h3>Modbus Exception Codes</h3>
+    <table>
+        <tr><td><code>0x01</code></td><td>Illegal Function – function code not supported</td></tr>
+        <tr><td><code>0x02</code></td><td>Illegal Data Address – address not available on target device</td></tr>
+        <tr><td><code>0x03</code></td><td>Illegal Data Value – invalid value in the request</td></tr>
+        <tr><td><code>0x04</code></td><td>Slave Device Failure – unrecoverable error (default for flow errors)</td></tr>
+        <tr><td><code>0x06</code></td><td>Slave Device Busy – device is processing a long-duration command</td></tr>
+        <tr><td><code>0x0A</code></td><td>Gateway Path Unavailable – gateway misconfigured</td></tr>
+        <tr><td><code>0x0B</code></td><td>Gateway Target Failed To Respond – sent automatically on response timeout</td></tr>
+    </table>
 
-    <h3>Details</h3>
-    <p>
-        The <b>modbus-out</b> node completes the Dynamic Server Proxy pattern.
-        After the flow processes a request from <b>modbus-in</b>, this node sends
-        the result back to the waiting external Modbus client.
-    </p>
-    <p>
-        <b>Important:</b> The <code>requestId</code> must match a pending request.
-        If the response arrives after the configured timeout, the request will have
-        already been answered with an error and the response will be discarded.
-    </p>
+    <h3>Status Indicators</h3>
+    <table>
+        <tr><td>🟢 green/dot</td><td>Response sent successfully – shows truncated request ID</td></tr>
+        <tr><td>🟡 yellow/dot</td><td>Error response sent (via <code>payload.error</code>)</td></tr>
+        <tr><td>🔴 red/ring</td><td>Invalid payload, missing requestId, or request already expired</td></tr>
+        <tr><td>⚪ grey/dot</td><td>Ready, waiting for response data</td></tr>
+    </table>
+
+    <h3>Error Behavior</h3>
+    <ul>
+        <li><b>Missing <code>requestId</code>:</b> Error reported immediately – response cannot be matched.</li>
+        <li><b>Expired request:</b> If the response arrives after the server's response timeout,
+            the request will have already been answered with exception 0x0B. The late response is
+            discarded and a warning is logged.</li>
+        <li><b>Missing <code>data</code> and no <code>error</code>:</b> Error reported via <code>done(err)</code>.</li>
+    </ul>
 
     <h3>Example Flow</h3>
-    <pre>
-[modbus-in] → [function: compute response] → [modbus-out]
+    <pre>[modbus-in] → [function] → [modbus-out]
 
 // In the function node:
 msg.payload = {
@@ -108,4 +112,9 @@ msg.payload = {
     data: [100, 200, 300]
 };
 return msg;</pre>
+
+    <h3>References</h3>
+    <ul>
+        <li><a href="https://modbus.org/specs.php">Modbus Application Protocol V1.1b3</a> – Exception responses §7</li>
+    </ul>
 </script>

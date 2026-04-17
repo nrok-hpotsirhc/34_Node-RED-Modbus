@@ -193,66 +193,89 @@
 </script>
 
 <script type="text/html" data-help-name="modbus-client-config">
-    <p>Configuration node for Modbus client connections.</p>
+    <p>Configuration node for Modbus TCP and RTU client connections.</p>
+
     <h3>Connection Types</h3>
     <dl class="message-properties">
         <dt>TCP</dt>
         <dd>Connect to a Modbus device via TCP/IP. Requires a host address and port number.</dd>
         <dt>RTU (Serial)</dt>
-        <dd>Connect to a Modbus device via serial port (RS-232/RS-485). Requires the <code>serialport</code> package to be installed.</dd>
+        <dd>Connect to a Modbus device via serial port (RS-232/RS-485). Requires the
+            <code>serialport</code> npm package to be installed as an optional dependency.</dd>
     </dl>
+
     <h3>TCP Settings</h3>
     <dl class="message-properties">
         <dt>Host <span class="property-type">string</span></dt>
         <dd>IP address or hostname of the Modbus device. Default: <code>127.0.0.1</code></dd>
         <dt>Port <span class="property-type">number</span></dt>
-        <dd>TCP port number. Default: <code>502</code> (or <code>802</code> with TLS enabled)</dd>
+        <dd>TCP port number. Default: <code>502</code>. Automatically changes to <code>802</code>
+            when TLS is enabled (IANA-registered Modbus/TCP Security port).</dd>
     </dl>
+
     <h3>RTU Settings</h3>
     <dl class="message-properties">
         <dt>Serial Port <span class="property-type">string</span></dt>
-        <dd>Path to the serial port device (e.g., <code>/dev/ttyUSB0</code>, <code>COM3</code>).</dd>
+        <dd>Path to the serial port device, e.g. <code>/dev/ttyUSB0</code> (Linux) or <code>COM3</code> (Windows).</dd>
         <dt>Baud Rate <span class="property-type">number</span></dt>
-        <dd>Communication speed. Common values: 9600, 19200, 38400, 57600, 115200.</dd>
+        <dd>Communication speed. Options: 9600, 19200, 38400, 57600, 115200. Default: <code>9600</code></dd>
         <dt>Parity <span class="property-type">string</span></dt>
-        <dd>Error detection: None, Even, or Odd.</dd>
+        <dd>Error detection mode: <code>none</code>, <code>even</code>, or <code>odd</code>. Default: <code>none</code></dd>
         <dt>Data Bits <span class="property-type">number</span></dt>
-        <dd>Number of data bits per character: 7 or 8.</dd>
+        <dd>Bits per character: <code>7</code> or <code>8</code>. Default: <code>8</code></dd>
         <dt>Stop Bits <span class="property-type">number</span></dt>
-        <dd>Number of stop bits: 1 or 2.</dd>
+        <dd>Number of stop bits: <code>1</code> or <code>2</code>. Default: <code>1</code></dd>
     </dl>
+
     <h3>Common Settings</h3>
     <dl class="message-properties">
         <dt>Unit ID <span class="property-type">number</span></dt>
-        <dd>Modbus slave/unit ID (0-255). Default: <code>1</code></dd>
+        <dd>Modbus slave/unit identifier. Range: 0–247 (248–255 reserved). Default: <code>1</code></dd>
         <dt>Timeout <span class="property-type">number</span></dt>
-        <dd>Response timeout in milliseconds. Default: <code>1000</code></dd>
+        <dd>Response timeout in milliseconds. If the device does not respond within this time,
+            the request fails with a timeout error. Default: <code>1000</code></dd>
     </dl>
+
     <h3>Modbus/TCP Security (TLS)</h3>
     <p>
-        When enabled, the connection is secured using TLS 1.2/1.3 as per the
-        Modbus/TCP Security specification. The default port changes to <code>802</code>
-        (IANA-registered for Modbus/TCP Security).
+        When enabled, the connection uses TLS 1.2 or 1.3 as defined in the
+        Modbus/TCP Security Protocol Specification. The port automatically
+        switches to <code>802</code>.
     </p>
     <dl class="message-properties">
         <dt>Enable TLS <span class="property-type">boolean</span></dt>
-        <dd>Activate Modbus/TCP Security. Port is automatically set to 802.</dd>
+        <dd>Activate encrypted transport. Only available for TCP connections.</dd>
         <dt>CA Certificate <span class="property-type">string</span></dt>
-        <dd>File path to the CA certificate (PEM format) for verifying the server certificate.</dd>
+        <dd>File path to the CA certificate (PEM format) for verifying the server's identity.</dd>
         <dt>Client Certificate <span class="property-type">string</span></dt>
-        <dd>File path to the client certificate (PEM format) for mutual TLS (mTLS) authentication.</dd>
+        <dd>File path to the client certificate (PEM) for mutual TLS (mTLS) authentication.</dd>
         <dt>Private Key <span class="property-type">string</span></dt>
-        <dd>File path to the client private key (PEM format). Required when a client certificate is provided.</dd>
+        <dd>File path to the client private key (PEM). Required when a client certificate is provided.</dd>
         <dt>Key Passphrase <span class="property-type">string</span></dt>
-        <dd>Optional passphrase for encrypted private keys.</dd>
+        <dd>Optional passphrase if the private key is encrypted.</dd>
         <dt>Verify Server <span class="property-type">boolean</span></dt>
-        <dd>
-            When enabled (default), the server's certificate must be valid and signed by a trusted CA.
-            <b>Warning:</b> Disabling this removes TLS peer verification and is NOT recommended for production.
-        </dd>
+        <dd>Validate the server certificate against the CA. Default: <code>true</code>.
+            <b>Warning:</b> Disabling this removes TLS peer verification and is NOT recommended for production.</dd>
     </dl>
+
+    <h3>Connection Lifecycle</h3>
     <p>
-        <b>Security note:</b> Certificate file paths are stored in the Node-RED credential store
-        and never in <code>flow.json</code>. Private keys and passphrases are encrypted.
+        The connection is managed by an XState state machine with automatic reconnection.
+        On connection failure, exponential backoff retries are applied (base delay 1 s,
+        max delay 30 s, max 5 retries). RTU connections use a half-duplex semaphore to
+        serialize requests on the shared serial bus. TCP connections support connection pooling.
     </p>
+
+    <h3>Security</h3>
+    <p>
+        Certificate file paths and the key passphrase are stored in the Node-RED
+        <b>credential store</b> – they are encrypted at rest and never written to
+        <code>flow.json</code>. Private keys are masked in the editor UI.
+    </p>
+
+    <h3>References</h3>
+    <ul>
+        <li><a href="https://modbus.org/specs.php">Modbus Application Protocol V1.1b3</a></li>
+        <li><a href="https://modbus.org/specs.php">Modbus/TCP Security Protocol Specification</a></li>
+    </ul>
 </script>

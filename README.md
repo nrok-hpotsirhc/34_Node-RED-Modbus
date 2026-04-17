@@ -12,7 +12,7 @@
 
 ## Development Progress
 
-> **Current State (2026-04-17):** MS-7 complete – TLS 1.3, mTLS, X.509v3 security layer fully implemented and tested. 536/536 tests passing. MS-8 (QA & Release) in progress. Theoretical foundations for MS-9–MS-12 (extended FCs, fieldbus extensions) elaborated.
+> **Current State (2026-04-18):** MS-7 complete – TLS 1.3, mTLS, X.509v3 security layer fully implemented and tested. 536/536 tests passing. MS-8 (QA & Release) in progress – help sidebar texts for all 6 nodes completed. Theoretical foundations for MS-9–MS-12 (extended FCs, fieldbus extensions) elaborated.
 
 | # | Milestone | Status | Progress |
 |---|-----------|--------|----------|
@@ -23,7 +23,7 @@
 | MS-5 | Server/Slave – Proxy Architecture | ✅ Complete | `██████████` 100 % |
 | MS-6 | Server Caching & Optimization | ✅ Complete | `██████████` 100 % |
 | MS-7 | Modbus/TCP Security | ✅ Complete | `██████████` 100 % |
-| MS-8 | Quality Assurance & Release | 🔄 In Progress | `████░░░░░░` 40 % |
+| MS-8 | Quality Assurance & Release | 🔄 In Progress | `█████░░░░░` 50 % |
 | MS-9 | High-Priority Extended FCs | 🔲 Open | `░░░░░░░░░░` 0 % |
 | MS-10 | Serial Diagnostics & Legacy FCs | 🔲 Open | `░░░░░░░░░░` 0 % |
 | MS-11 | Fieldbus Architecture Extensions | 🔲 Open | `░░░░░░░░░░` 0 % |
