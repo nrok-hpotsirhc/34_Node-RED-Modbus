@@ -1,0 +1,89 @@
+Create Node-RED help sidebar texts for all 6 nodes of node-red-contrib-modbus-pro.
+
+## Context
+
+Node-RED displays help text in the sidebar when a user selects a node in the editor. This text is defined inside `<script type="text/html" data-help-name="node-type-name">` blocks in the .html files. These help texts are the primary user-facing documentation.
+
+## Preparation
+
+1. Read agents.md for project overview and node descriptions.
+2. Read docs/THEORETICAL_FOUNDATIONS.md §3 (Function Codes), §7 (Endianness), §12 (Extended FCs) for protocol context.
+3. Read each .html file in src/nodes/ to see the current config UI and any existing help text.
+4. Read each .js file in src/nodes/ to understand exactly what each node does, its inputs, outputs, and configuration options.
+
+## The 6 Nodes
+
+| Node | HTML File | Type |
+|------|-----------|------|
+| modbus-client-config | src/nodes/config/modbus-client-config.html | Config |
+| modbus-server-config | src/nodes/config/modbus-server-config.html | Config |
+| modbus-read | src/nodes/client/modbus-read.html | Input/Polling |
+| modbus-write | src/nodes/client/modbus-write.html | Action |
+| modbus-in | src/nodes/server/modbus-in.html | Server Input |
+| modbus-out | src/nodes/server/modbus-out.html | Server Output |
+
+## Help Text Structure (per Node-RED convention)
+
+```html
+<script type="text/html" data-help-name="modbus-{name}">
+  <p>One-sentence summary of what the node does.</p>
+
+  <h3>Configuration</h3>
+  <dl class="message-properties">
+    <dt>Property Name <span class="property-type">type</span></dt>
+    <dd>Description of the property. Include default value and valid range.</dd>
+  </dl>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>msg.payload <span class="property-type">object|array</span></dt>
+    <dd>What the node expects as input.</dd>
+  </dl>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>msg.payload <span class="property-type">object</span></dt>
+    <dd>What the node sends as output. Document every field.</dd>
+  </dl>
+
+  <h3>Details</h3>
+  <p>Longer explanation: supported function codes, behavior modes, error handling, status indicators.</p>
+
+  <h3>References</h3>
+  <ul>
+    <li><a href="...">Modbus specification</a></li>
+    <li><a href="...">GitHub repository</a></li>
+  </ul>
+</script>
+```
+
+## Content Requirements
+
+For each node, the help text MUST include:
+- **Summary:** One clear sentence describing the node's purpose
+- **All config properties:** With type, default value, valid range, and description
+- **Input format:** Exact msg.payload structure the node accepts (with examples)
+- **Output format:** Exact msg.payload structure the node emits (document every field)
+- **Supported Function Codes:** Table with FC number, name, and register range
+- **Status indicators:** Explain what each color/shape means (green/dot, red/dot, red/ring, yellow/dot)
+- **Error behavior:** What happens on timeout, invalid address, transport error
+- **Credential fields:** For config nodes, explain which fields use the Credential Store (do NOT show actual values)
+- **TLS configuration:** For config nodes that support TLS, explain the certificate fields
+
+## Quality Standards
+
+- Language: English only
+- Keep it concise – users scan, not read. Use tables for structured data.
+- Use `<code>` for property names, values, and code snippets
+- Use `<dl class="message-properties">` for input/output documentation (Node-RED convention)
+- No marketing language – technical and factual only
+- Test in Node-RED if possible: verify HTML renders correctly in the sidebar
+
+## Validation
+
+After writing all help texts:
+1. Check that every `data-help-name` matches the registered node type name exactly
+2. Verify all config properties from the .js defaults object are documented
+3. Run `npm test` to ensure nothing was broken in the HTML files
+4. Update MILESTONES.md (check off "Node-RED help sidebar texts" deliverable)
+5. Update CHANGELOG.md and agents.md §9

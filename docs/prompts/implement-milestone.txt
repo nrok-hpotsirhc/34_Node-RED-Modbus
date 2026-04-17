@@ -1,0 +1,60 @@
+Implement milestone MS-{N} for the node-red-contrib-modbus-pro project.
+
+## Preparation (mandatory before writing any code)
+
+1. Read agents.md completely – it is the authoritative project guide.
+2. Read MILESTONES.md – find MS-{N}, read its description, deliverables, and theory references.
+3. Read the referenced Work Packages in docs/WORK_PACKAGES.md for detailed requirements.
+4. Read the referenced sections in docs/THEORETICAL_FOUNDATIONS.md for protocol-level understanding.
+5. Read docs/DEVELOPER_GUIDE.md for setup and coding conventions.
+6. Read docs/TEST_MANUAL.md for the test strategy and mock data policy.
+
+Do NOT start writing code until all 6 documents have been read and understood.
+
+## Implementation Rules
+
+Follow agents.md §4.2 (Coding Standards) strictly:
+- Async: exclusively async/await and Promises – NO callbacks, NO setTimeout cascades
+- State management: all connection states via XState – NO hand-coded if/else FSMs
+- Error handling: propagate via XState transitions and node.error(err, msg) – NEVER silently swallow
+- Logging: node.warn() and node.log() with context (connectionId, unitId, operation)
+- Node-RED status: consistently use this.status() – green/dot (connected), red/dot (disconnected), red/ring (error), yellow/dot (queue full)
+
+Follow agents.md §4.3 (Security Rules) strictly:
+- Credentials exclusively via Node-RED Credential Store – NEVER in source code
+- TLS: rejectUnauthorized defaults to true
+- Validate all inputs at system boundaries
+
+## Implementation Workflow
+
+For each work package in the milestone:
+1. Create the module file(s) in the appropriate src/ directory
+2. Write the unit test file(s) in the corresponding test/unit/ directory BEFORE considering the module done
+3. If the module uses mocks, place them in test/mocks/ and update test/mocks/README.md
+4. If the module uses fixtures, place them in test/fixtures/ and update test/fixtures/README.md
+5. Every mock file must have the standard header comment (see agents.md §5)
+6. Run the full test suite after each module to catch regressions
+
+## Test Requirements
+
+- Every public function/method needs at least: 1 happy-path test, 1 error-path test, 1 edge-case test
+- Use sinon for stubs/spies, restore in afterEach
+- Use sinon.useFakeTimers() for timer-dependent tests
+- Test isolation: no shared mutable state between tests
+- Mark inline test data with // TEST-DATA: comments
+- Target: zero test regressions – all existing tests must still pass
+
+## Completion Checklist
+
+Before declaring the milestone complete, verify:
+- [ ] All deliverables from MILESTONES.md are checked off
+- [ ] All unit tests pass (`node ./node_modules/mocha/bin/mocha.js --config .mocharc.yml`)
+- [ ] No console.log/console.error in production code
+- [ ] No credentials or secrets in source code
+- [ ] Mock/fixture READMEs updated if new mocks were added
+- [ ] CHANGELOG.md updated with all new features under [Unreleased]
+- [ ] MILESTONES.md updated: deliverables checked, status set, Progress Log entry added
+- [ ] agents.md §9 updated with new test count and status
+- [ ] README.md updated with milestone progress
+
+Replace {N} with the actual milestone number before using this prompt.

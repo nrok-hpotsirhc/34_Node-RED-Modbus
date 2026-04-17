@@ -1,0 +1,96 @@
+Prepare node-red-contrib-modbus-pro for npm publication (MS-8 release tasks).
+
+## Preparation
+
+1. Read agents.md completely – §9 shows the current deliverable checklist.
+2. Read MILESTONES.md – check MS-8 deliverables and verify which are still open.
+3. Read package.json – verify all metadata fields.
+4. Read README.md – verify it is complete for end users.
+5. Read CHANGELOG.md – verify [Unreleased] section is ready to become [0.1.0].
+
+## Task 1: package.json Validation
+
+Verify and fix if needed:
+- [ ] `name`: "node-red-contrib-modbus-pro"
+- [ ] `version`: "0.1.0"
+- [ ] `description`: Clear, concise, includes "Modbus TCP/RTU" and "Node-RED"
+- [ ] `keywords`: ["node-red", "modbus", "modbus-tcp", "modbus-rtu", "industrial", "plc", "scada"]
+- [ ] `author`: Correct name, email, URL
+- [ ] `license`: "BSD-3-Clause"
+- [ ] `repository`: Correct GitHub URL with type "git"
+- [ ] `bugs`: GitHub issues URL
+- [ ] `homepage`: GitHub repo or docs URL
+- [ ] `engines`: { "node": ">=18.0.0" }
+- [ ] `node-red.version`: ">=3.0.0"
+- [ ] `node-red.nodes`: All 6 nodes correctly mapped to their .js files
+- [ ] `main`: Points to src/index.js
+- [ ] `files`: Array that includes only what should be published: ["src/", "examples/", "LICENSE", "README.md", "CHANGELOG.md"]
+- [ ] `scripts.test`: Correct test command
+- [ ] Dependencies vs devDependencies: modbus-serial and xstate in dependencies, test tools in devDependencies
+- [ ] `optionalDependencies`: serialport
+- [ ] No `private: true` flag (would block npm publish)
+
+## Task 2: .npmignore or files Field
+
+Verify that `npm pack` will NOT include:
+- test/ directory
+- docs/ directory (except what users need)
+- .git/ directory
+- agents.md, MILESTONES.md, docs/prompts/
+- .mocharc.yml, .eslintrc*, .gitignore
+- Recherche.txt, "1st prompt.txt"
+- node_modules/
+
+Use the `files` field in package.json (whitelist approach, preferred over .npmignore).
+
+## Task 3: npm pack Dry Run
+
+Run `npm pack --dry-run` and review the file list:
+- Verify only production files are included
+- Check total package size (should be reasonable, <500KB without node_modules)
+- Verify LICENSE and README.md are included
+- Verify no test files, mock data, or internal docs leaked into the package
+
+## Task 4: README.md for End Users
+
+The README must serve as the primary documentation for npm users. Verify it contains:
+- [ ] Project name and one-line description
+- [ ] Badges: npm version, Node-RED compatibility, license, tests passing
+- [ ] Installation: `npm install node-red-contrib-modbus-pro`
+- [ ] Quick Start: minimal flow example with screenshot or JSON
+- [ ] Node Reference: table listing all 6 nodes with brief descriptions
+- [ ] Supported Function Codes: table (FC number, name, node type)
+- [ ] Configuration: how to set up TCP, RTU, TLS connections
+- [ ] Security: TLS/mTLS setup, credential handling
+- [ ] API: msg.payload input/output format for each node
+- [ ] Examples: link to examples/flows/ directory
+- [ ] Contributing: link to docs/DEVELOPER_GUIDE.md
+- [ ] License: BSD-3-Clause with link to LICENSE file
+- [ ] No internal development notes (those belong in agents.md/MILESTONES.md)
+
+## Task 5: CHANGELOG.md Finalization
+
+- Rename `[Unreleased]` section to `[0.1.0] - 2026-04-XX` (use current date)
+- Add a fresh empty `[Unreleased]` section above it
+- Verify all features, fixes, and changes from MS-1 through MS-8 are listed
+- Follow Keep a Changelog format: Added, Changed, Fixed, Removed, Security
+
+## Task 6: Example Flows
+
+Create at least 3 importable example flows in examples/flows/:
+1. **basic-read-write.json** – TCP connection, read holding registers, write single register
+2. **rtu-polling.json** – RTU serial connection, periodic polling of multiple devices
+3. **tls-secure.json** – TLS/mTLS encrypted Modbus TCP connection
+
+Each flow file must:
+- Be valid Node-RED flow JSON (importable via Menu → Import)
+- Use placeholder IPs/ports that users must change (comment nodes explaining what to configure)
+- NOT contain any real credentials or certificates
+- Include a comment node at the top explaining the flow's purpose
+
+## Task 7: Final Validation
+
+1. Run full test suite: `node ./node_modules/mocha/bin/mocha.js --config .mocharc.yml`
+2. Run `npm pack --dry-run` and review output
+3. Verify `npm install --dry-run` works from a clean directory
+4. Update all status files per agents.md §4.1a

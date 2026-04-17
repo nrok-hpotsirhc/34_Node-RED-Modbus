@@ -1,0 +1,79 @@
+Write comprehensive tests for the module at: {FILE_PATH}
+
+## Preparation
+
+1. Read agents.md – understand coding standards (§4.2) and mock data policy (§5).
+2. Read docs/TEST_MANUAL.md – understand the test strategy and naming conventions.
+3. Read the source module completely to understand all public functions, edge cases, and error paths.
+4. Read existing test files in the same test directory for style consistency.
+5. Check test/mocks/README.md and test/fixtures/README.md to see what already exists.
+
+## Test Structure
+
+Use the project's test stack: Mocha (describe/it), Chai (expect), Sinon (stubs/spies/fakeTimers).
+
+```javascript
+'use strict';
+const { expect } = require('chai');
+const sinon = require('sinon');
+// require the module under test
+```
+
+### Naming Convention
+- describe blocks: module name or class name
+- Nested describe blocks: method or function name
+- it blocks: "should {expected behavior} when {condition}"
+
+Example:
+```javascript
+describe('BackpressureQueue', () => {
+  describe('#enqueue()', () => {
+    it('should add item to queue when below high-water mark', () => { ... });
+    it('should emit "drop" event when queue is full and strategy is FIFO', () => { ... });
+    it('should throw TypeError when item is null', () => { ... });
+  });
+});
+```
+
+## Coverage Requirements
+
+For EVERY public method or exported function, write:
+1. **Happy path** – normal input produces expected output
+2. **Error path** – invalid input, missing dependencies, transport failures
+3. **Edge cases** – empty arrays, zero values, max values, boundary conditions (PDU limits, register ranges)
+4. **Async behavior** – verify Promises resolve/reject correctly, check await ordering
+5. **Event emission** – verify EventEmitter events fire with correct arguments
+6. **Cleanup** – verify resources are released on close/destroy
+
+## Rules
+
+- **Isolation:** Each test must be independent. Use beforeEach to create fresh instances.
+- **Sinon cleanup:** Always call sinon.restore() in afterEach. Always restore fake timers.
+- **No real I/O:** Use mocks for TCP sockets, serial ports, TLS connections, file system.
+- **No real timers:** Use sinon.useFakeTimers() for any setTimeout/setInterval behavior.
+- **Inline test data:** Mark with `// TEST-DATA:` comment explaining the value.
+- **Mock files:** If you create a new mock, place it in test/mocks/ with the required header:
+  ```javascript
+  /**
+   * MOCK: [Description]
+   * USED IN: [Test files that use this mock]
+   * LAST UPDATED: [Date]
+   * REMOVABLE: [yes/no + rationale]
+   */
+  ```
+- **No flaky tests:** Avoid timing-dependent assertions. Use fake timers or event-driven checks.
+- **Boundary values:** Test with 0, 1, max (e.g., 125 registers for FC03, 2000 coils for FC01, unitId 0 and 247).
+
+## Validation
+
+After writing all tests:
+1. Run only the new test file to check for failures
+2. Run the full suite to check for regressions: `node ./node_modules/mocha/bin/mocha.js --config .mocharc.yml`
+3. Report the test count: "{X} new tests, {Y}/{Y} total passing"
+
+## Output
+
+List each test case written with a one-line description, grouped by describe block.
+Report total new tests added.
+
+Replace {FILE_PATH} with the actual source file path before using this prompt.

@@ -1,0 +1,43 @@
+Debug and fix the following issue in node-red-contrib-modbus-pro:
+
+**Problem:** {DESCRIBE THE ISSUE – error message, wrong behavior, failing test, or user report}
+
+## Preparation
+
+1. Read agents.md – understand project conventions, especially §4.2 (coding standards) and §4.3 (security).
+2. Read the relevant source file(s) to understand the current implementation.
+3. Read the relevant test file(s) to understand existing test coverage.
+4. If the issue involves a specific function code or protocol behavior, read the corresponding section in docs/THEORETICAL_FOUNDATIONS.md.
+
+## Diagnosis
+
+1. Reproduce the issue: write a minimal failing test case FIRST (test-driven fix).
+2. Trace the execution path from entry point to the point of failure.
+3. Identify the root cause – not just the symptom. Ask:
+   - Is this a logic error, a race condition, a missing null check, or a protocol misunderstanding?
+   - Could this same pattern cause bugs elsewhere? Search for similar code.
+   - Was there a recent change that introduced this? Check CHANGELOG.md.
+
+## Fix Rules
+
+- Fix the root cause, not just the symptom.
+- Keep the fix minimal – do not refactor unrelated code.
+- If the fix changes public behavior, update the corresponding help sidebar text.
+- If the fix changes msg.payload format, update payload-builder.js and its tests.
+- Ensure the fix does not break any existing tests.
+- If the bug was in a security-relevant path, verify no new vulnerability was introduced.
+
+## Validation
+
+1. The failing test from step 1 must now pass.
+2. Run the full test suite: `node ./node_modules/mocha/bin/mocha.js --config .mocharc.yml`
+3. All existing tests must still pass (zero regressions).
+4. If the fix is non-trivial, add additional edge-case tests.
+
+## Documentation
+
+1. Update CHANGELOG.md: add a "Fixed" entry under [Unreleased] with a clear description.
+2. If this is part of a code review batch, group it under "Code Review #N" in the changelog.
+3. Update agents.md §9 if the fix changes the test count or resolves a known issue.
+
+Replace {DESCRIBE THE ISSUE} with the actual problem description before using this prompt.

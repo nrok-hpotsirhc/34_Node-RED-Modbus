@@ -1,0 +1,78 @@
+Perform resource leak testing for the node-red-contrib-modbus-pro project (WP 5.2).
+
+## Context
+
+Node-RED performs partial deploys – when a user changes one node, only affected nodes are stopped and restarted while other nodes keep running. This creates a high risk of resource leaks if close handlers don't clean up properly.
+
+## Preparation
+
+1. Read agents.md – understand the project architecture and all 6 node types.
+2. Read every node file in src/nodes/ (config/, client/, server/) – focus on:
+   - The `node.on('close', ...)` handler
+   - All setInterval/setTimeout calls
+   - All EventEmitter listener registrations
+   - All socket/transport references
+   - All XState actor subscriptions
+3. Read every lib module in src/lib/ – focus on:
+   - destroy() / close() / stop() methods
+   - Timer lifecycle management
+   - EventEmitter cleanup
+
+## Leak Categories to Test
+
+### 1. Timer Leaks
+- Every setInterval() must have a matching clearInterval() in the close handler
+- Every setTimeout() must have a matching clearTimeout() in the close handler
+- Non-critical timers should use .unref() to not block process exit
+- Test: create node → start polling → close node → verify no active timers remain
+
+### 2. EventEmitter Listener Leaks
+- Every .on() / .addListener() must have a matching .off() / .removeListener() in close
+- Config nodes that broadcast events to child nodes must clean up when children close
+- Test: create 5 read nodes on 1 config → close 3 → verify listener count decreased by 3
+
+### 3. Socket/Transport Leaks
+- TCP sockets must be destroy()'d on close, not just end()'d
+- TLS sockets need the same treatment
+- Connection pool connections must all be destroyed when the pool is closed
+- Test: create config node with pool size 3 → close → verify all 3 sockets destroyed
+
+### 4. XState Actor Leaks
+- Actor subscriptions must be unsubscribed on close
+- The actor itself must be stopped on close
+- Test: create config node → connect → close → verify actor is stopped, no pending transitions
+
+### 5. Queue/Semaphore Leaks
+- Backpressure queue must be drained or cleared on close
+- Pending queue callbacks must be resolved (with error) or discarded
+- RTU semaphore must release any held lock and reject pending acquires
+- Test: enqueue 10 requests → close node → verify queue is empty, no pending promises
+
+### 6. Cache Leaks
+- Register cache cleanup interval must be cleared on close
+- Cache entries must be cleared to free memory
+- Test: populate cache with 1000 entries → close → verify cache is empty, no active interval
+
+### 7. Partial Deploy Scenarios
+- Close only the read node while config node stays alive → verify read node cleanup, config node unaffected
+- Close only the config node while read nodes reference it → verify all children notified, no orphan listeners
+- Rapid close/reopen cycle (simulate Node-RED restart) → verify no duplicate listeners or timers
+
+## Implementation
+
+Write these tests in test/unit/lifecycle/ or test/integration/ as appropriate.
+Use sinon.useFakeTimers() for timer tests.
+Use sinon spies on destroy(), clearInterval(), removeListener() to verify cleanup.
+
+For each leak category:
+1. Write a test that creates the resource
+2. Trigger the close/destroy handler
+3. Assert the resource was properly cleaned up
+
+## Expected Output
+
+- New test file(s) with all leak tests
+- Report: which close handlers are complete, which need fixes
+- Fix any leaks found directly in the source code
+- Run full test suite to verify no regressions
+- Update CHANGELOG.md, MILESTONES.md (WP 5.2 deliverable), agents.md §9
